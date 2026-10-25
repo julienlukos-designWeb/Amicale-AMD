@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1d1d21">
+<title>Amicale Contingents 17</title>
+<style>
+:root{--bg:#141416;--bar:#1d1d21;--tx:#f3f4f6;--mu:#a8adb8;--ln:#3a3d48;--bl:#2563eb;--gr:#15803d;--rd:#b91c1c;--or:#c2410c;--vi:#7c3aed}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;-webkit-text-size-adjust:100%}
+button,input{font-family:inherit}
+.top{position:sticky;top:0;z-index:5;height:60px;display:flex;align-items:center;gap:6px;padding:0 8px;background:var(--bar)}
+.ic{width:44px;height:44px;border:0;background:none;color:#fff;display:flex;align-items:center;justify-content:center}
+.lg{display:flex;align-items:center;gap:10px}
+.lo{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#facc15,#c2410c);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;color:#1c1917;font-style:normal;flex:none}
+.lg b{display:block;font-size:13px}.lg span{display:block;font-size:11px;color:var(--mu)}
+.pg{max-width:520px;margin:0 auto;padding:14px 16px 8px;display:flex;flex-direction:column;gap:12px}
+.c{border-radius:16px;padding:14px 16px;background:linear-gradient(135deg,#2b2f3a,#1e2028)}
+.s{font-size:12px;color:var(--mu)}
+.m{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.tag{border-radius:999px;padding:4px 10px;font-size:11px;font-weight:700;color:#fff;white-space:nowrap}
+.b{border:0;border-radius:12px;color:#fff;font-weight:700;font-size:14px;min-height:48px;padding:0 14px}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
+.f{width:100%;border:1px solid #4b5060;border-radius:10px;background:#1d1d21;color:var(--tx);font-size:15px;padding:12px;min-height:46px;margin-top:6px}
+.tabs{display:flex;gap:8px;background:var(--bar);border-radius:12px;padding:4px}
+.tabs button{flex:1;min-height:44px;border:0;border-radius:10px;font-weight:700;font-size:13px;background:none;color:var(--mu)}
+.tabs button.on{background:var(--bl);color:#fff}
+.ft{text-align:center;font-size:11px;color:var(--mu);padding:14px 16px 24px}
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.55);opacity:0;pointer-events:none;transition:opacity .2s;z-index:8}
+.ov.on{opacity:1;pointer-events:auto}
+.dr{position:fixed;top:0;bottom:0;left:0;width:280px;max-width:84%;background:var(--bar);z-index:9;transform:translateX(-102%);transition:transform .2s;display:flex;flex-direction:column;padding:12px 0;box-shadow:6px 0 24px rgba(0,0,0,.6)}
+.dr.on{transform:none}
+.dr .i{height:44px;display:flex;align-items:center;gap:12px;padding:0 20px;border:0;background:none;color:#e5e7eb;font-size:14px;text-align:left;width:100%}
+.dr .i.a{background:#34343a;font-weight:700;color:#fff}
+.dr .i i{width:10px;height:10px;border-radius:3px}
+.dr .sp{margin-top:auto;padding:8px 20px 0;font-size:11px;color:var(--mu)}
+.ctr{min-height:100vh;display:flex;flex-direction:column;justify-content:center;gap:14px;max-width:420px;margin:0 auto;padding:28px 20px;text-align:center}
+.big{width:84px;height:84px;margin:0 auto;border-radius:50%;background:linear-gradient(135deg,#facc15,#c2410c);display:flex;align-items:center;justify-content:center;font-weight:800;color:#1c1917}
+.err{background:#7f1d1d;color:#fecaca;border-radius:10px;padding:10px 12px;font-size:13px}
+.left{text-align:left}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script>
+const SB = supabase.createClient('https://fwodbaildriqkmpplutj.supabase.co', 'sb_publishable_yDfRe6HmyHgGVo1AuuosYg_h9LDlWLA');
+const NOM = 'Amicale Projet Contingents 17 Fatick', SLOGAN = 'Unis pour construire demain';
+const FOOT = 'Administrateur et créateur: Julien D. Y. LUKOS';
+const $ = s => document.querySelector(s);
+const esc = t => String(t ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const digits = p => String(p).replace(/\D/g, '');
+const mail = p => digits(p) + '@amicale-c17.com';
+let me = null, page = 'home', menu = false, tab = 'in', msg = '';
+const isAdm = () => me && ['admin', 'owner'].includes(me.role);
+const isOwn = () => me && me.role === 'owner';
+const BURGER = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg>';
+const COL = {blue:['#2563eb','#1e3a8a'], green:['#15803d','#14532d'], red:['#b91c1c','#7f1d1d'], gray:['#4b5563','#1f2937'], vio:['#7c3aed','#4c1d95'], or:['#c2410c','#7c2d12']};
+const btn = (t, fn, c) => `<button class="b" style="background:${COL[c][0]};box-shadow:0 5px 0 ${COL[c][1]}" onclick="${fn}">${t}</button>`;
+
+async function boot() {
+  const { data: { session } } = await SB.auth.getSession();
+  me = null;
+  if (session) {
+    const { data } = await SB.from('profiles').select('*').eq('id', session.user.id).maybeSingle();
+    me = data;
+    if (!me) { await SB.auth.signOut(); msg = 'Compte introuvable. Crée un compte.'; }
+  }
+  render();
+}
+
+function authView() {
+  const up = tab === 'up';
+  return `<div class="ctr"><div class="big">Logo</div><div style="font-weight:800;font-size:17px">${NOM}</div><div class="s">${SLOGAN}</div>
+  <div class="tabs"><button class="${up ? '' : 'on'}" onclick="setTab('in')">Connexion</button><button class="${up ? 'on' : ''}" onclick="setTab('up')">Créer un compte</button></div>
+  ${msg ? `<div class="err" role="alert">${esc(msg)}</div>` : ''}
+  <form class="left" onsubmit="${up ? 'signup' : 'signin'}(event)">
+  ${up ? `<label class="s">Prénom<input class="f" name="fn" required autocomplete="given-name"></label><label class="s" style="display:block;margin-top:10px">Nom<input class="f" name="ln" required autocomplete="family-name"></label>` : ''}
+  <label class="s" style="display:block;margin-top:10px">Numéro de téléphone<input class="f" name="ph" type="tel" required autocomplete="tel"></label>
+  <label class="s" style="display:block;margin-top:10px">Mot de passe${up ? ' (6 caractères minimum)' : ''}<input class="f" name="pw" type="password" required minlength="6" autocomplete="${up ? 'new-password' : 'current-password'}"></label>
+  <button class="b" style="width:100%;margin-top:18px;min-height:54px;background:${up ? '#15803d' : '#2563eb'};box-shadow:0 5px 0 ${up ? '#14532d' : '#1e3a8a'}">${up ? 'Créer mon compte' : 'Se connecter'}</button></form>
+  ${up ? '<div class="s">Un administrateur validera ton compte avant ta première connexion.</div>' : ''}
+  <div class="ft">${FOOT}</div></div>`;
+}
+function setTab(t) { tab = t; msg = ''; render(); }
+async function signin(e) {
+  e.preventDefault(); const f = new FormData(e.target);
+  const { error } = await SB.auth.signInWithPassword({ email: mail(f.get('ph')), password: f.get('pw') });
+  if (error) { msg = 'Numéro ou mot de passe incorrect.'; return render(); }
+  msg = ''; boot();
+}
+async function signup(e) {
+  e.preventDefault(); const f = new FormData(e.target); const ph = digits(f.get('ph'));
+  if (ph.length < 6) { msg = 'Numéro de téléphone invalide.'; return render(); }
+  const { error } = await SB.auth.signUp({ email: mail(ph), password: f.get('pw'),
+    options: { data: { first_name: f.get('fn').trim(), last_name: f.get('ln').trim(), phone: ph } } });
+  if (error) { msg = /registered|already/i.test(error.message) ? 'Ce numéro est déjà inscrit.' : error.message; return render(); }
+  msg = ''; boot();
+}
+async function logout() { await SB.auth.signOut(); me = null; menu = false; page = 'home'; tab = 'in'; render(); }
+
+function stateView(icon, titre, texte) {
+  return `<div class="ctr"><div class="big">Logo</div><div style="font-weight:800;font-size:17px">${NOM}</div>
+  <div class="c" style="background:linear-gradient(135deg,#b45309,#78350f);padding:24px 20px"><div style="font-weight:800;font-size:19px">${titre}</div><div style="font-size:14px;color:#fde68a;margin-top:8px;line-height:1.5">${texte}</div></div>
+  ${btn('Actualiser', 'boot()', 'blue')}${btn('Se déconnecter', 'logout()', 'gray')}<div class="ft">${FOOT}</div></div>`;
+}
+
+const TITRES = { home: 'Accueil', requests: "Demandes d'inscription", members: 'Membres' };
+function go(p) { page = p; menu = false; render(); }
+function tog() { menu = !menu; $('.dr').classList.toggle('on', menu); $('.ov').classList.toggle('on', menu); }
+function item(p, t, col) { return `<button class="i ${page === p ? 'a' : ''}" onclick="go('${p}')"><i style="background:${col}"></i>${t}</button>`; }
+
+function render() {
+  const a = $('#app');
+  if (!me) { a.innerHTML = authView(); return; }
+  const m = { pending: ['Compte en attente de validation', `Bonjour ${esc(me.first_name)}, ta demande a bien été envoyée. Un administrateur va la valider. Tu pourras alors accéder à la plateforme.`],
+    rejected: ['Demande rejetée', 'Ta demande d\'inscription a été rejetée. Contacte un administrateur de l\'amicale.'],
+    disabled: ['Compte désactivé', 'Ton compte est désactivé. Contacte un administrateur pour le réactiver.'],
+    deleted: ['Compte supprimé', 'Ce compte n\'est plus actif. Contacte un administrateur de l\'amicale.'] }[me.status];
+  if (m) { a.innerHTML = stateView('', m[0], m[1]); return; }
+  a.innerHTML = `<div class="top"><button class="ic" onclick="tog()" aria-label="Menu">${BURGER}</button><div class="lg"><i class="lo">Logo</i><div><b>Amicale Contingents 17</b><span>${TITRES[page]}</span></div></div></div>
+  <main id="c" class="pg"><div class="s">Chargement…</div></main><div class="ft">${FOOT}</div>
+  <div class="ov ${menu ? 'on' : ''}" onclick="tog()"></div>
+  <nav class="dr ${menu ? 'on' : ''}">${item('home', 'Accueil', '#3b82f6')}
+  ${isAdm() ? item('requests', "Demandes d'inscription", '#f59e0b') + item('members', 'Membres', '#22c55e') : ''}
+  <button class="i" onclick="logout()"><i style="background:#9ca3af"></i>Se déconnecter</button><div class="sp">${FOOT}</div></nav>`;
+  fill();
+}
+
+async function fill() {
+  const c = $('#c'); let h = '';
+  if (page === 'home') h = await homeV();
+  else if (page === 'requests') h = await listV(['pending', 'rejected'], true);
+  else h = await listV(['active', 'disabled', 'deleted'], false);
+  if (c) c.innerHTML = h;
+}
+
+async function homeV() {
+  const hr = new Date().getHours(), hello = hr >= 18 || hr < 5 ? 'Bonsoir' : 'Bonjour';
+  const { data: n } = await SB.rpc('active_members_count');
+  return `<div style="font-size:22px;font-weight:800;padding:0 4px">${hello}, ${esc(me.first_name)}</div>
+  <div class="c" style="background:linear-gradient(135deg,#15803d,#166534)"><div style="font-size:13px;color:#d1fae5">${SLOGAN}</div><div style="font-size:30px;font-weight:800;margin-top:6px">${n ?? 0}</div><div style="font-size:13px;color:#d1fae5">Membres actifs</div></div>
+  <div class="c"><div style="font-weight:700">Bientôt</div><div class="s" style="margin-top:6px;line-height:1.5">Annonces, budget de la caisse, cotisations, événements et pages d'honneur arrivent aux prochaines étapes.</div></div>`;
+}
+
+const ST = { pending: ['En attente', '#c2410c'], rejected: ['Rejeté', '#b91c1c'], active: ['Actif', '#15803d'], disabled: ['Désactivé', '#4b5563'], deleted: ['Supprimé', '#b91c1c'] };
+const RL = { owner: ['Propriétaire', '#b45309'], admin: ['Administrateur', '#7c3aed'] };
+async function listV(statuses, req) {
+  const { data, error } = await SB.from('profiles').select('*').in('status', statuses).order('created_at', { ascending: false });
+  if (error) return `<div class="err">${esc(error.message)}</div>`;
+  if (!data.length) return `<div class="c s">${req ? 'Aucune demande en attente.' : 'Aucun membre.'}</div>`;
+  const rows = data.map(p => {
+    const t = RL[p.role] || ST[p.status], who = `<div><div style="font-weight:700">${esc(p.first_name)} ${esc(p.last_name)}</div><div class="s">${esc(p.phone)}</div></div>`;
+    let ac = '';
+    if (p.id === me.id) ac = '';
+    else if (p.status === 'pending') ac = `<div class="g2">${btn('Valider', `act('${p.id}','active')`, 'green')}${btn('Rejeter', `act('${p.id}','rejected')`, 'red')}</div>`;
+    else if (p.status === 'rejected') ac = `<div style="margin-top:12px">${btn('Valider quand même', `act('${p.id}','active')`, 'green')}</div>`;
+    else if (p.role === 'owner') ac = '';
+    else if (p.status === 'active') ac = `<div class="g2">${btn('Désactiver', `act('${p.id}','disabled')`, 'gray')}${isOwn() ? btn(p.role === 'admin' ? 'Retirer admin' : 'Nommer admin', `setRole('${p.id}','${p.role === 'admin' ? 'member' : 'admin'}')`, 'vio') : ''}</div>`;
+    else ac = `<div class="g2">${btn(p.status === 'deleted' ? 'Restaurer' : 'Réactiver', `act('${p.id}','active')`, 'green')}</div>`;
+    if (isOwn() && p.id !== me.id && p.role !== 'owner' && ['active', 'disabled'].includes(p.status))
+      ac += `<div style="margin-top:12px">${btn('Supprimer', `del('${p.id}')`, 'red')}</div>`;
+    return `<div class="c"><div class="m">${who}<span class="tag" style="background:${t[1]}">${t[0]}</span></div>${ac}</div>`;
+  }).join('');
+  return `<div style="font-weight:700;font-size:16px">${req ? data.length + ' demande(s)' : data.length + ' compte(s)'}</div>${rows}`;
+}
+async function act(id, status) {
+  const { error } = await SB.from('profiles').update({ status }).eq('id', id);
+  if (error) alert(error.message); fill();
+}
+async function setRole(id, role) {
+  const { error } = await SB.from('profiles').update({ role }).eq('id', id);
+  if (error) alert(error.message); fill();
+}
+function del(id) { if (confirm('Supprimer ce compte ? Il pourra être restauré plus tard.')) act(id, 'deleted'); }
+
+SB.auth.onAuthStateChange(() => {});
+boot();
+</script>
+</body>
+</html>
