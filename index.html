@@ -53,6 +53,10 @@ select.f{appearance:auto}
 .big{width:96px;height:96px;margin:0 auto;border-radius:50%;overflow:hidden;background:linear-gradient(135deg,#facc15,#c2410c);display:flex;align-items:center;justify-content:center;font-weight:800;color:#1c1917;box-shadow:0 0 0 4px rgba(255,255,255,.12),0 14px 30px rgba(0,0,0,.4)}
 .err{background:#7f1d1d;color:#fecaca;border-radius:12px;padding:10px 12px;font-size:13px}
 .left{text-align:left}
+.opt{display:flex;align-items:center;gap:12px;min-height:50px;padding:6px 0;border-bottom:1px solid var(--bd);font-size:14px}
+.opt input{width:22px;height:22px;accent-color:#22c55e;flex:none}.opt em{margin-left:auto;font-size:12px;color:var(--mu);font-style:normal;text-align:right}.opt.off{opacity:.45}
+.stat{flex-direction:column;gap:3px;min-height:86px;padding:10px 6px;font-weight:600;text-align:center}.stat span{font-size:11px;opacity:.92}.stat b{font-size:19px}
+.ph{width:84px;height:104px;border-radius:14px;object-fit:cover;background:#2a2f3d;flex:none;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--mu)}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
@@ -132,6 +136,12 @@ function stateView(icon, titre, texte) {
 }
 
 const TITRES = { settings: 'Paramètres', home: 'Accueil', profile: 'Mon profil', budget: 'État du budget', situation: 'Situation des membres', requests: "Demandes d'inscription", members: 'Membres' };
+const stat = (l, v, fn, c) => `<button class="b stat" style="--c:${COL[c][0]};--d:${COL[c][1]}" onclick="${fn}"><span>${l}</span><b>${v}</b></button>`;
+Object.assign(IC, { star: 'M12 3l2.8 5.7 6.2.9-4.5 4.4 1 6.2L12 17.3 6.5 20.2l1-6.2L3 9.6l6.2-.9z', bell: 'M6 8a6 6 0 0112 0c0 7 3 9 3 9H3s3-2 3-9M10 21a2 2 0 004 0', doc: 'M7 3h8l4 4v14H7zM15 3v4h4M10 12h6M10 16h6', image: 'M4 5h16v14H4zM4 15l5-5 4 4 3-3 4 4M9 9h.01', cal: 'M4 6h16v14H4zM4 10h16M8 3v4M16 3v4', heart: 'M12 21s-8-5-8-11a4.5 4.5 0 018-2.8A4.5 4.5 0 0120 10c0 6-8 11-8 11z', mega: 'M3 11v3h4l8 5V6L7 11zM18 9a4 4 0 010 6' });
+const PK = { honneur: { t: "Page d'honneur", ex: 'Titre ou année', thumb: 1 }, rappel: { t: 'Rappel important' }, annonce: { t: 'Annonces' }, statuts: { t: 'Statuts' }, reglement: { t: 'Règlement intérieur' }, image: { t: "Images de l'amicale", noTitle: 1 }, morts: { t: 'À nos morts', ex: 'Naissance – Décès', thumb: 1 } };
+Object.keys(PK).forEach(k => TITRES[k] = PK[k].t); TITRES.event = 'Enregistrer un événement'; TITRES.log = 'Historique des événements';
+const EVL = { fiancailles: 'Fiançailles', mariage: 'Mariage', circoncision: 'Circoncision', communion: 'Communion', bapteme: 'Baptême', deces: 'Décès' };
+const REL = { pere: 'Père', mere: 'Mère', enfant: 'Enfant', conjoint: 'Conjoint(e)' };
 function go(p) { page = p; menu = false; render(); }
 function tog() { menu = !menu; $('.dr').classList.toggle('on', menu); $('.ov').classList.toggle('on', menu); }
 function item(p, t, ic) { return `<button class="i ${page === p ? 'a' : ''}" onclick="go('${p}')">${ico(ic)}${t}</button>`; }
@@ -148,7 +158,7 @@ function render() {
   <main id="c" class="pg"><div class="s">Chargement…</div></main><div class="ft">${FOOT}</div>
   <div class="ov ${menu ? 'on' : ''}" onclick="tog()"></div>
   <nav class="dr ${menu ? 'on' : ''}"><div class="dh"><i class="lo" style="width:46px;height:46px">${logo()}</i><b>${esc(BR.name)}</b></div>
-  ${item('home', 'Accueil', 'home')}${item('profile', 'Mon profil', 'user')}${item('budget', 'État du budget', 'wallet')}${item('situation', 'Situation des membres', 'users')}
+  ${item('home', 'Accueil', 'home')}${item('profile', 'Mon profil', 'user')}${item('honneur', "Page d'honneur", 'star')}${item('rappel', 'Rappel important', 'bell')}${item('annonce', 'Annonces', 'mega')}${item('statuts', 'Statuts', 'doc')}${item('reglement', 'Règlement intérieur', 'doc')}${item('budget', 'État du budget', 'wallet')}${item('log', 'Historique événements', 'cal')}${item('situation', 'Situation des membres', 'users')}${item('image', "Images de l'amicale", 'image')}${item('morts', 'À nos morts', 'heart')}
   ${isAdm() ? item('requests', "Demandes d'inscription", 'inbox') + item('members', 'Membres', 'list') + item('settings', 'Paramètres', 'gear') : ''}
   <button class="i" onclick="logout()">${ico('out')}Se déconnecter</button><div class="sp">${FOOT}</div></nav>`;
   fill();
@@ -161,6 +171,9 @@ async function fill() {
   else if (page === 'settings') h = await settingsV();
   else if (page === 'budget') h = await budgetV();
   else if (page === 'situation') h = await situationV();
+  else if (page === 'event') h = await eventV();
+  else if (page === 'log') h = await logV();
+  else if (PK[page]) h = await postsV(page);
   else if (page === 'requests') h = await listV(['pending', 'rejected'], true);
   else h = await listV(['active', 'disabled', 'deleted'], false);
   if (c) c.innerHTML = h;
@@ -211,30 +224,40 @@ async function trancheAmt() {
 
 async function homeV() {
   const hr = new Date().getHours(), hello = hr >= 18 || hr < 5 ? 'Bonsoir' : 'Bonjour';
-  const [{ data: n }, { data: sm }] = await Promise.all([SB.rpc('active_members_count'), SB.rpc('budget_summary')]);
+  const [{ data: n }, { data: sm }, { data: ps }] = await Promise.all([SB.rpc('active_members_count'), SB.rpc('budget_summary'),
+    SB.from('amicale_posts').select('kind,title,body,created_at').in('kind', ['rappel', 'annonce']).order('created_at', { ascending: false }).limit(8)]);
   const b = sm || { entrees: 0, depenses: 0, prev_entrees: 0, prev_depenses: 0 };
   const d = new Date(), pm = new Date(d.getFullYear(), d.getMonth() - 1, 1).toLocaleDateString('fr-FR', { month: 'short' });
+  const rap = (ps || []).find(p => p.kind === 'rappel'), ann = (ps || []).filter(p => p.kind === 'annonce').slice(0, 2);
   return `<div style="padding:2px 4px"><div class="s">${d.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}</div><div style="font-size:28px;font-weight:800;letter-spacing:-.5px;margin-top:2px">${hello}, ${esc(me.first_name)}</div></div>
   <div class="c" style="background:linear-gradient(135deg,#15803d,#166534)"><div style="font-size:13px;color:#d1fae5">${SLOGAN}</div><div style="font-size:30px;font-weight:800;margin-top:6px">${fcfa(b.entrees - b.depenses)}</div><div style="font-size:13px;color:#d1fae5;margin-top:2px">Somme globale disponible en caisse</div></div>
-  <div class="g3"><div class="c st"><div class="s">Membres actifs</div><b>${n ?? 0}</b></div>
-  <div class="c st"><div class="s">Entrées ${pm}</div><b style="color:#4ade80">${num(b.prev_entrees)}</b></div>
-  <div class="c st"><div class="s">Dépenses ${pm}</div><b style="color:#f87171">${num(b.prev_depenses)}</b></div></div>
+  <div class="g3">${stat('Membres actifs', n ?? 0, "go('situation')", 'blue')}${stat('Entrées ' + pm, num(b.prev_entrees), "go('budget')", 'green')}${stat('Dépenses ' + pm, num(b.prev_depenses), "go('budget')", 'red')}</div>
   <div class="q">${btn(ico('wallet') + 'État du budget', "go('budget')", 'blue')}${btn(ico('user') + 'Mon profil', "go('profile')", 'green')}${isAdm() ? btn(ico('users') + 'Situation', "go('situation')", 'teal') + btn(ico('inbox') + 'Demandes', "go('requests')", 'or') : btn(ico('users') + 'Situation des membres', "go('situation')", 'teal').replace('class="b"', 'class="b wide"')}</div>
-  <div class="c"><div style="font-weight:700">Bientôt</div><div class="s" style="margin-top:6px;line-height:1.5">Annonces avec notifications, événements, page d'honneur et page « À nos morts » arrivent aux prochaines étapes.</div></div>`;
+  ${rap ? `<div class="c" style="background:linear-gradient(135deg,#7f1d1d,#451a1a)"><div style="font-weight:800;font-size:13px;color:#fecaca">RAPPEL IMPORTANT</div><div style="font-weight:700;margin-top:6px">${esc(rap.title)}</div><div style="font-size:14px;margin-top:4px;line-height:1.4;white-space:pre-wrap">${esc(rap.body)}</div></div>` : ''}
+  ${ann.length ? `<div class="c"><div style="font-weight:700;padding-bottom:4px">Dernières annonces</div>${ann.map(a => `<div class="row"><div><div>${esc(a.title)}</div><div class="s">${dfr(a.created_at.slice(0, 10))}</div></div></div>`).join('')}</div>` : ''}`;
 }
 
 async function profileV() {
-  const [amt, { data: pay }] = await Promise.all([trancheAmt(),
-    SB.from('amicale_movements').select('tranche,amount,op_date').eq('member_id', me.id).eq('category', 'cotisation').eq('year', YEAR)]);
+  const [amt, { data: pay }, { data: ov }, { data: evs }] = await Promise.all([trancheAmt(),
+    SB.from('amicale_movements').select('tranche,amount,op_date').eq('member_id', me.id).eq('category', 'cotisation').eq('year', YEAR),
+    SB.rpc('members_overview', { y: YEAR }), SB.from('amicale_events').select('*').eq('member_id', me.id).eq('kind', 'deces')]);
   const get = t => (pay || []).find(x => x.tranche === t);
   const paid = (pay || []).reduce((a, x) => a + x.amount, 0), tot = amt * 2, pct = tot ? Math.min(100, Math.round(paid * 100 / tot)) : 0;
   const row = t => { const p = get(t); return `<div class="row"><div>Tranche ${t} · ${num(p ? p.amount : amt)}<div class="s">${p ? 'Payée le ' + dfr(p.op_date) : 'À payer'}</div></div><span class="tag" style="background:${p ? '#15803d' : '#c2410c'}">${p ? 'Payée' : 'En attente'}</span></div>`; };
   const r = RL[me.role];
+  const o = (ov || []).find(x => x.member_id === me.id) || { fiancailles: 0, baptemes: 0, deces: 0 };
+  const fi = o.fiancailles >= 1, ma = o.groupe === 'mariage';
+  const er = (t, sub, tg, col) => `<div class="row"><div>${t}<div class="s">${sub}</div></div><span class="tag" style="background:${col}">${tg}</span></div>`;
+  const G = '#15803d', X = '#4b5563';
   return `<div class="c" style="background:linear-gradient(135deg,#1e3a8a,#2563eb)"><div class="m"><div style="font-weight:800;font-size:18px">${esc(me.first_name)} ${esc(me.last_name)}</div>${r ? `<span class="tag" style="background:${r[1]}">${r[0]}</span>` : ''}</div><div style="font-size:13px;color:#dbe6ff;margin-top:4px">${esc(me.phone)}</div></div>
   <div class="c" style="background:linear-gradient(135deg,#15803d,#166534)"><div style="font-size:13px;color:#d1fae5">Cotisations ${YEAR}</div><div style="font-size:24px;font-weight:800;margin-top:4px">${num(paid)} / ${num(tot)} FCFA</div>
   <div style="height:12px;border-radius:6px;background:#14532d;margin-top:10px;overflow:hidden"><div style="width:${pct}%;height:100%;background:#86efac"></div></div><div style="font-size:13px;color:#d1fae5;margin-top:6px">${pct} % payé</div></div>
   <div class="c" style="padding-top:6px;padding-bottom:6px">${row(1)}${row(2)}</div>
-  <div class="c"><div style="font-weight:700">Mes événements</div><div class="s" style="margin-top:6px;line-height:1.5">Fiançailles, mariage, circoncision ou communion, baptêmes et décès : cette partie arrive à l'étape suivante.</div></div>`;
+  <div class="c" style="padding-top:8px;padding-bottom:8px"><div class="m" style="padding:6px 0;flex-wrap:wrap"><b>Mes événements</b><div style="display:flex;gap:6px"><span class="tag" style="background:${fi ? G : X}">Fiancé(e) : ${fi ? 'Oui' : 'Non'}</span><span class="tag" style="background:${ma ? G : X}">Marié(e) : ${ma ? 'Oui' : 'Non'}</span></div></div>
+  ${er('Fiançailles', 'Limite : 1', o.fiancailles + '/1', fi ? X : G)}
+  ${er('Mariage, circoncision ou communion', o.groupe ? EVL[o.groupe] + ' célébré' : 'Un seul des trois · limite 1', (o.groupe ? 1 : 0) + '/1', o.groupe ? X : G)}
+  ${er('Baptêmes', `${o.baptemes} reçu(s) sur 4 · il te reste ${4 - o.baptemes}`, o.baptemes + '/4', o.baptemes >= 4 ? X : G)}
+  ${er('Décès', o.deces ? 'Parent de premier degré : ' + (evs || []).map(e => REL[e.relative]).join(', ') : 'Parent de premier degré uniquement', o.deces + ' reçu(s)', o.deces ? '#b45309' : X)}</div>`;
 }
 
 async function budgetV() {
@@ -268,18 +291,18 @@ async function delMov(id) {
 
 let SIT = {};
 async function situationV() {
-  const [amt, { data, error }] = await Promise.all([trancheAmt(), SB.rpc('members_situation', { y: YEAR })]);
+  const [amt, { data, error }] = await Promise.all([trancheAmt(), SB.rpc('members_overview', { y: YEAR })]);
   if (error) return `<div class="err">${esc(error.message)}</div>`;
   SIT = {}; (data || []).forEach(p => SIT[p.member_id] = p.first_name + ' ' + p.last_name);
-  const chip = (ok, t) => `<span class="tag" style="background:${ok ? '#15803d' : '#4b5563'}">T${t} ${ok ? 'payée' : 'non payée'}</span>`;
-  const rows = (data || []).map(p => `<div class="c"><div class="m"><b>${esc(p.first_name)} ${esc(p.last_name)}</b><span class="s">${(p.t1 ? 1 : 0) + (p.t2 ? 1 : 0)}/2</span></div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">${chip(p.t1, 1)}${chip(p.t2, 2)}</div>
-    ${isAdm() && (!p.t1 || !p.t2) ? `<div class="g2" style="margin-top:10px">${!p.t1 ? btnS('Enregistrer T1', `pay('${p.member_id}',1)`, 'green') : '<span></span>'}${!p.t2 ? btnS('Enregistrer T2', `pay('${p.member_id}',2)`, 'green') : '<span></span>'}</div>` : ''}</div>`).join('');
+  const chip = (ok, t) => `<span class="tag" style="background:${ok ? '#15803d' : '#4b5563'}">${t}</span>`;
+  const rows = (data || []).map(p => `<div class="c"><div class="m"><b>${esc(p.first_name)} ${esc(p.last_name)}</b><span class="s">${(p.t1 ? 1 : 0) + (p.t2 ? 1 : 0)}/2 tranches</span></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">${chip(p.t1, 'T1 ' + (p.t1 ? 'payée' : 'non payée'))}${chip(p.t2, 'T2 ' + (p.t2 ? 'payée' : 'non payée'))}${chip(p.fiancailles > 0, 'Fiançailles ' + p.fiancailles + '/1')}${chip(!!p.groupe, p.groupe ? EVL[p.groupe] + ' 1/1' : 'Mar./Circ./Comm. 0/1')}${chip(p.baptemes > 0, 'Baptêmes ' + p.baptemes + '/4')}${chip(p.deces > 0, 'Décès ' + p.deces)}</div>
+    ${isAdm() ? `${!p.t1 || !p.t2 ? `<div class="g2">${!p.t1 ? btnS('Enregistrer T1', `pay('${p.member_id}',1)`, 'green') : ''}${!p.t2 ? btnS('Enregistrer T2', `pay('${p.member_id}',2)`, 'green') : ''}</div>` : ''}<div style="margin-top:10px">${btnS('Enregistrer un événement', `openEvent('${p.member_id}')`, 'or')}</div>` : ''}</div>`).join('');
   const cfg = isAdm() ? `<form class="c" onsubmit="saveAmt(event)"><label class="s">Montant d'une tranche (FCFA)<input class="f" name="amt" type="number" min="0" step="1" inputmode="numeric" value="${amt}" required></label>
     <button class="b sm" style="width:100%;margin-top:12px">Enregistrer le montant</button></form>` : '';
-  return `<div style="font-weight:700;font-size:16px">Cotisations ${YEAR} · tranche : ${fcfa(amt)}</div>${cfg}${rows || '<div class="c s">Aucun membre actif.</div>'}
-  <div class="s" style="text-align:center">Les événements de chaque membre s'ajouteront ici à l'étape suivante.</div>`;
+  return `<div style="font-weight:700;font-size:16px">Situation ${YEAR} · tranche : ${fcfa(amt)}</div>${cfg}${rows || '<div class="c s">Aucun membre actif.</div>'}`;
 }
+
 async function pay(id, t) {
   const amt = await trancheAmt();
   if (!amt) { alert("Définis d'abord le montant d'une tranche."); return; }
@@ -323,6 +346,87 @@ async function saveBrand(e) {
     if (error || !data.length) { alert(error ? error.message : "Exécute d'abord le fichier 3-nom-et-logo.sql dans Supabase."); return; }
   }
   NEWLOGO = null; await loadBrand(); alert('Enregistré.'); render();
+}
+
+
+let EVM = null;
+function openEvent(id) { EVM = id; go('event'); }
+function relToggle() { const k = document.querySelector('input[name=k]:checked'); $('#rel').style.display = k && k.value === 'deces' ? 'block' : 'none'; }
+async function eventV() {
+  if (!EVM) return '<div class="c s">Choisis un membre dans « Situation des membres ».</div>';
+  const { data, error } = await SB.rpc('members_overview', { y: YEAR });
+  const p = (data || []).find(x => x.member_id === EVM);
+  if (error || !p) return `<div class="err">${esc(error ? error.message : 'Membre introuvable.')}</div>`;
+  const opt = (v, l, off, note) => `<label class="opt ${off ? 'off' : ''}"><input type="radio" name="k" value="${v}" ${off ? 'disabled' : ''} required onchange="relToggle()"><span>${l}</span><em>${note}</em></label>`;
+  const gOff = !!p.groupe, gN = gOff ? '1/1 · limite atteinte' : '0/1';
+  return `<div class="c" style="background:linear-gradient(135deg,#1e3a8a,#2563eb)"><div style="font-weight:800;font-size:18px">${esc(p.first_name)} ${esc(p.last_name)}</div><div style="font-size:13px;color:#dbe6ff;margin-top:4px">Quel événement a-t-il eu ?</div></div>
+  <form class="c" onsubmit="addEvent(event)" style="padding-top:8px">
+  ${opt('fiancailles', 'Fiançailles', p.fiancailles >= 1, p.fiancailles >= 1 ? '1/1 · limite atteinte' : '0/1')}
+  ${opt('mariage', 'Mariage', gOff, gN)}${opt('circoncision', 'Circoncision', gOff, gN)}${opt('communion', 'Communion', gOff, gN)}
+  ${opt('bapteme', 'Baptême', p.baptemes >= 4, p.baptemes + '/4')}${opt('deces', 'Décès (parent 1er degré)', false, p.deces + ' reçu(s)')}
+  <select class="f" id="rel" name="rel" aria-label="Parent concerné" style="display:none"><option value="pere">Père</option><option value="mere">Mère</option><option value="enfant">Enfant</option><option value="conjoint">Conjoint(e)</option></select>
+  <label class="s" style="display:block;margin-top:12px">Date<input class="f" name="date" type="date" value="${today()}" required></label>
+  <button class="b" style="width:100%;margin-top:16px;--c:#15803d;--d:#14532d">Enregistrer l'événement</button></form>
+  <div class="s" style="text-align:center">Mariage, circoncision et communion : un seul des trois par membre.</div>`;
+}
+async function addEvent(e) {
+  e.preventDefault(); const f = new FormData(e.target), k = f.get('k');
+  const row = { member_id: EVM, kind: k, event_date: f.get('date') }; if (k === 'deces') row.relative = f.get('rel');
+  const { error } = await SB.from('amicale_events').insert(row);
+  if (error) { alert(error.message); return; }
+  alert('Événement enregistré.'); go('situation');
+}
+async function logV() {
+  const { data, error } = await SB.rpc('events_log');
+  if (error) return `<div class="err">${esc(error.message)}</div>`;
+  const rows = (data || []).map(e => `<div class="row"><div><b>${esc(e.first_name)} ${esc(e.last_name)}</b><div class="s">${EVL[e.kind]}${e.relative ? ' · ' + REL[e.relative] : ''} · ${dfr(e.event_date)}</div></div>${isAdm() ? btnS('Supprimer', `delEvent(${e.id})`, 'red') : ''}</div>`).join('');
+  return `<div class="c" style="padding-top:8px;padding-bottom:8px">${rows || '<div class="s" style="padding:8px 0">Aucun événement enregistré.</div>'}</div>`;
+}
+async function delEvent(id) {
+  if (!confirm('Supprimer cet événement ? Le compteur du membre sera recalculé.')) return;
+  const { error } = await SB.from('amicale_events').delete().eq('id', id);
+  if (error) alert(error.message); fill();
+}
+
+let NEWPH = '';
+function pickPhoto(inp) {
+  const f = inp.files[0]; if (!f) { NEWPH = ''; return; }
+  const r = new FileReader();
+  r.onload = () => { const im = new Image(); im.onload = () => {
+    const k = Math.min(1, 480 / Math.max(im.width, im.height)), c = document.createElement('canvas');
+    c.width = Math.round(im.width * k); c.height = Math.round(im.height * k);
+    c.getContext('2d').drawImage(im, 0, 0, c.width, c.height);
+    NEWPH = c.toDataURL('image/jpeg', .78); $('#pp').innerHTML = `<img src="${NEWPH}" alt="Aperçu" style="max-width:100%;border-radius:12px;margin-top:10px">`;
+  }; im.src = r.result; };
+  r.readAsDataURL(f);
+}
+async function postsV(k) {
+  NEWPH = ''; const cf = PK[k];
+  const { data, error } = await SB.from('amicale_posts').select('*').eq('kind', k).order('created_at', { ascending: false }).limit(50);
+  if (error) return `<div class="err">${esc(error.message)}</div>`;
+  const form = isAdm() ? `<form class="c" onsubmit="addPost(event,'${k}')"><div style="font-weight:700">Ajouter</div>
+    ${cf.noTitle ? '' : '<input class="f" name="title" placeholder="Titre" required>'}
+    ${cf.ex ? `<input class="f" name="extra" placeholder="${cf.ex}">` : ''}
+    <textarea class="f" name="body" rows="5" placeholder="Texte"${cf.noTitle ? '' : ' required'}></textarea>
+    <label class="b sm" style="margin-top:12px;cursor:pointer;--c:#2563eb;--d:#1e3a8a">Ajouter une photo<input type="file" accept="image/*" hidden onchange="pickPhoto(this)"></label><div id="pp"></div>
+    <button class="b" style="width:100%;margin-top:10px;--c:#facc15;--d:#a16207;color:#1c1917;text-shadow:none">Publier</button></form>` : '';
+  const cards = (data || []).map(p => {
+    const del = isAdm() ? `<div style="margin-top:12px">${btnS('Supprimer', `delPost(${p.id})`, 'red')}</div>` : '';
+    const txt = `<div style="min-width:0;flex:1">${p.title ? `<div style="font-weight:700;font-size:16px">${esc(p.title)}</div>` : ''}${p.extra ? `<div class="s" style="margin-top:2px">${esc(p.extra)}</div>` : ''}${p.body ? `<div style="font-size:14px;margin-top:8px;line-height:1.5;white-space:pre-wrap">${esc(p.body)}</div>` : ''}<div class="s" style="margin-top:8px">Publié le ${dfr(p.created_at.slice(0, 10))}</div></div>`;
+    if (cf.thumb) return `<div class="c"><div style="display:flex;gap:14px">${p.photo ? `<img class="ph" src="${esc(p.photo)}" alt="">` : '<div class="ph">Photo</div>'}${txt}</div>${del}</div>`;
+    return `<div class="c">${p.photo ? `<img src="${esc(p.photo)}" alt="" style="width:100%;max-height:300px;object-fit:cover;border-radius:14px;margin-bottom:12px">` : ''}${txt}${del}</div>`;
+  }).join('');
+  return `${form}${cards || '<div class="c s">Rien n\'a encore été publié ici.</div>'}`;
+}
+async function addPost(e, k) {
+  e.preventDefault(); const f = new FormData(e.target);
+  const { error } = await SB.from('amicale_posts').insert({ kind: k, title: (f.get('title') || '').trim(), body: (f.get('body') || '').trim(), extra: (f.get('extra') || '').trim() || null, photo: NEWPH || null });
+  if (error) alert(error.message); NEWPH = ''; fill();
+}
+async function delPost(id) {
+  if (!confirm('Supprimer cette publication ?')) return;
+  const { error } = await SB.from('amicale_posts').delete().eq('id', id);
+  if (error) alert(error.message); fill();
 }
 
 SB.auth.onAuthStateChange(() => {});
