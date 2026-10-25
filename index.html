@@ -138,8 +138,8 @@ function stateView(icon, titre, texte) {
 const TITRES = { settings: 'Paramètres', home: 'Accueil', profile: 'Mon profil', budget: 'État du budget', situation: 'Situation des membres', requests: "Demandes d'inscription", members: 'Membres' };
 const stat = (l, v, fn, c) => `<button class="b stat" style="--c:${COL[c][0]};--d:${COL[c][1]}" onclick="${fn}"><span>${l}</span><b>${v}</b></button>`;
 Object.assign(IC, { star: 'M12 3l2.8 5.7 6.2.9-4.5 4.4 1 6.2L12 17.3 6.5 20.2l1-6.2L3 9.6l6.2-.9z', bell: 'M6 8a6 6 0 0112 0c0 7 3 9 3 9H3s3-2 3-9M10 21a2 2 0 004 0', doc: 'M7 3h8l4 4v14H7zM15 3v4h4M10 12h6M10 16h6', image: 'M4 5h16v14H4zM4 15l5-5 4 4 3-3 4 4M9 9h.01', cal: 'M4 6h16v14H4zM4 10h16M8 3v4M16 3v4', heart: 'M12 21s-8-5-8-11a4.5 4.5 0 018-2.8A4.5 4.5 0 0120 10c0 6-8 11-8 11z', mega: 'M3 11v3h4l8 5V6L7 11zM18 9a4 4 0 010 6' });
-const PK = { honneur: { t: "Page d'honneur", ex: 'Titre ou année', thumb: 1 }, rappel: { t: 'Rappel important' }, annonce: { t: 'Annonces' }, statuts: { t: 'Statuts' }, reglement: { t: 'Règlement intérieur' }, image: { t: "Images de l'amicale", noTitle: 1 }, morts: { t: 'À nos morts', ex: 'Naissance – Décès', thumb: 1 } };
-Object.keys(PK).forEach(k => TITRES[k] = PK[k].t); TITRES.event = 'Enregistrer un événement'; TITRES.log = 'Historique des événements';
+const PK = { honneur: { t: "Page d'honneur", ex: 'Titre ou année', thumb: 1 }, rappel: { t: 'Rappel important' }, annonce: { t: 'Annonces' }, statuts: { t: 'Statuts', pdf: 1 }, reglement: { t: 'Règlement intérieur', pdf: 1 }, image: { t: "Images de l'amicale", noTitle: 1 }, morts: { t: 'À nos morts', ex: 'Naissance – Décès', thumb: 1 } };
+Object.keys(PK).forEach(k => TITRES[k] = PK[k].t); TITRES.event = 'Situation du membre';
 const EVL = { fiancailles: 'Fiançailles', mariage: 'Mariage', circoncision: 'Circoncision', communion: 'Communion', bapteme: 'Baptême', deces: 'Décès' };
 const REL = { pere: 'Père', mere: 'Mère', enfant: 'Enfant', conjoint: 'Conjoint(e)' };
 function go(p) { page = p; menu = false; render(); }
@@ -158,7 +158,7 @@ function render() {
   <main id="c" class="pg"><div class="s">Chargement…</div></main><div class="ft">${FOOT}</div>
   <div class="ov ${menu ? 'on' : ''}" onclick="tog()"></div>
   <nav class="dr ${menu ? 'on' : ''}"><div class="dh"><i class="lo" style="width:46px;height:46px">${logo()}</i><b>${esc(BR.name)}</b></div>
-  ${item('home', 'Accueil', 'home')}${item('profile', 'Mon profil', 'user')}${item('honneur', "Page d'honneur", 'star')}${item('rappel', 'Rappel important', 'bell')}${item('annonce', 'Annonces', 'mega')}${item('statuts', 'Statuts', 'doc')}${item('reglement', 'Règlement intérieur', 'doc')}${item('budget', 'État du budget', 'wallet')}${item('log', 'Historique événements', 'cal')}${item('situation', 'Situation des membres', 'users')}${item('image', "Images de l'amicale", 'image')}${item('morts', 'À nos morts', 'heart')}
+  ${item('home', 'Accueil', 'home')}${item('profile', 'Mon profil', 'user')}${item('honneur', "Page d'honneur", 'star')}${item('rappel', 'Rappel important', 'bell')}${item('annonce', 'Annonces', 'mega')}${item('statuts', 'Statuts', 'doc')}${item('reglement', 'Règlement intérieur', 'doc')}${item('budget', 'État du budget', 'wallet')}${item('situation', 'Situation des membres', 'users')}${item('image', "Images de l'amicale", 'image')}${item('morts', 'À nos morts', 'heart')}
   ${isAdm() ? item('requests', "Demandes d'inscription", 'inbox') + item('members', 'Membres', 'list') + item('settings', 'Paramètres', 'gear') : ''}
   <button class="i" onclick="logout()">${ico('out')}Se déconnecter</button><div class="sp">${FOOT}</div></nav>`;
   fill();
@@ -172,7 +172,6 @@ async function fill() {
   else if (page === 'budget') h = await budgetV();
   else if (page === 'situation') h = await situationV();
   else if (page === 'event') h = await eventV();
-  else if (page === 'log') h = await logV();
   else if (PK[page]) h = await postsV(page);
   else if (page === 'requests') h = await listV(['pending', 'rejected'], true);
   else h = await listV(['active', 'disabled', 'deleted'], false);
@@ -230,7 +229,7 @@ async function homeV() {
   const d = new Date(), pm = new Date(d.getFullYear(), d.getMonth() - 1, 1).toLocaleDateString('fr-FR', { month: 'short' });
   const rap = (ps || []).find(p => p.kind === 'rappel'), ann = (ps || []).filter(p => p.kind === 'annonce').slice(0, 2);
   return `<div style="padding:2px 4px"><div class="s">${d.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}</div><div style="font-size:28px;font-weight:800;letter-spacing:-.5px;margin-top:2px">${hello}, ${esc(me.first_name)}</div></div>
-  <div class="c" style="background:linear-gradient(135deg,#15803d,#166534)"><div style="font-size:13px;color:#d1fae5">${SLOGAN}</div><div style="font-size:30px;font-weight:800;margin-top:6px">${fcfa(b.entrees - b.depenses)}</div><div style="font-size:13px;color:#d1fae5;margin-top:2px">Somme globale disponible en caisse</div></div>
+  <div class="c" style="background:linear-gradient(135deg,#15803d,#166534)"><div style="font-size:13px;color:#d1fae5">Somme globale disponible en caisse</div><div style="font-size:30px;font-weight:800;margin-top:6px">${fcfa(b.entrees - b.depenses)}</div></div>
   <div class="g3">${stat('Membres actifs', n ?? 0, "go('situation')", 'blue')}${stat('Entrées ' + pm, num(b.prev_entrees), "go('budget')", 'green')}${stat('Dépenses ' + pm, num(b.prev_depenses), "go('budget')", 'red')}</div>
   <div class="q">${btn(ico('wallet') + 'État du budget', "go('budget')", 'blue')}${btn(ico('user') + 'Mon profil', "go('profile')", 'green')}${isAdm() ? btn(ico('users') + 'Situation', "go('situation')", 'teal') + btn(ico('inbox') + 'Demandes', "go('requests')", 'or') : btn(ico('users') + 'Situation des membres', "go('situation')", 'teal').replace('class="b"', 'class="b wide"')}</div>
   ${rap ? `<div class="c" style="background:linear-gradient(135deg,#7f1d1d,#451a1a)"><div style="font-weight:800;font-size:13px;color:#fecaca">RAPPEL IMPORTANT</div><div style="font-weight:700;margin-top:6px">${esc(rap.title)}</div><div style="font-size:14px;margin-top:4px;line-height:1.4;white-space:pre-wrap">${esc(rap.body)}</div></div>` : ''}
@@ -297,7 +296,7 @@ async function situationV() {
   const chip = (ok, t) => `<span class="tag" style="background:${ok ? '#15803d' : '#4b5563'}">${t}</span>`;
   const rows = (data || []).map(p => `<div class="c"><div class="m"><b>${esc(p.first_name)} ${esc(p.last_name)}</b><span class="s">${(p.t1 ? 1 : 0) + (p.t2 ? 1 : 0)}/2 tranches</span></div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">${chip(p.t1, 'T1 ' + (p.t1 ? 'payée' : 'non payée'))}${chip(p.t2, 'T2 ' + (p.t2 ? 'payée' : 'non payée'))}${chip(p.fiancailles > 0, 'Fiançailles ' + p.fiancailles + '/1')}${chip(!!p.groupe, p.groupe ? EVL[p.groupe] + ' 1/1' : 'Mar./Circ./Comm. 0/1')}${chip(p.baptemes > 0, 'Baptêmes ' + p.baptemes + '/4')}${chip(p.deces > 0, 'Décès ' + p.deces)}</div>
-    ${isAdm() ? `${!p.t1 || !p.t2 ? `<div class="g2">${!p.t1 ? btnS('Enregistrer T1', `pay('${p.member_id}',1)`, 'green') : ''}${!p.t2 ? btnS('Enregistrer T2', `pay('${p.member_id}',2)`, 'green') : ''}</div>` : ''}<div style="margin-top:10px">${btnS('Enregistrer un événement', `openEvent('${p.member_id}')`, 'or')}</div>` : ''}</div>`).join('');
+    ${isAdm() ? `${!p.t1 || !p.t2 ? `<div class="g2">${!p.t1 ? btnS('Valider Tranche 1', `pay('${p.member_id}',1)`, 'green') : ''}${!p.t2 ? btnS('Valider Tranche 2', `pay('${p.member_id}',2)`, 'green') : ''}</div>` : ''}<div style="margin-top:10px">${btnS('Gérer la situation', `openEvent('${p.member_id}')`, 'or')}</div>` : ''}</div>`).join('');
   const cfg = isAdm() ? `<form class="c" onsubmit="saveAmt(event)"><label class="s">Montant d'une tranche (FCFA)<input class="f" name="amt" type="number" min="0" step="1" inputmode="numeric" value="${amt}" required></label>
     <button class="b sm" style="width:100%;margin-top:12px">Enregistrer le montant</button></form>` : '';
   return `<div style="font-weight:700;font-size:16px">Situation ${YEAR} · tranche : ${fcfa(amt)}</div>${cfg}${rows || '<div class="c s">Aucun membre actif.</div>'}`;
@@ -306,7 +305,7 @@ async function situationV() {
 async function pay(id, t) {
   const amt = await trancheAmt();
   if (!amt) { alert("Définis d'abord le montant d'une tranche."); return; }
-  if (!confirm(`Enregistrer la tranche ${t} de ${SIT[id]} (${fcfa(amt)}) ? Une entrée sera ajoutée à la caisse.`)) return;
+  if (!confirm(`Valider la tranche ${t} de ${SIT[id]} (${fcfa(amt)}) ? Une entrée sera ajoutée à la caisse.`)) return;
   const { error } = await SB.from('amicale_movements').insert({ kind: 'entree', amount: amt, description: `Cotisation tranche ${t} ${YEAR} — ${SIT[id]}`, category: 'cotisation', member_id: id, year: YEAR, tranche: t });
   if (error) alert(/duplicate|unique/i.test(error.message) ? 'Cette tranche est déjà enregistrée.' : error.message); fill();
 }
@@ -354,13 +353,20 @@ function openEvent(id) { EVM = id; go('event'); }
 function relToggle() { const k = document.querySelector('input[name=k]:checked'); $('#rel').style.display = k && k.value === 'deces' ? 'block' : 'none'; }
 async function eventV() {
   if (!EVM) return '<div class="c s">Choisis un membre dans « Situation des membres ».</div>';
-  const { data, error } = await SB.rpc('members_overview', { y: YEAR });
+  const [{ data, error }, { data: pays }, { data: evs }, amt] = await Promise.all([SB.rpc('members_overview', { y: YEAR }),
+    SB.from('amicale_movements').select('id,tranche,amount,op_date').eq('member_id', EVM).eq('category', 'cotisation').eq('year', YEAR),
+    SB.from('amicale_events').select('*').eq('member_id', EVM).order('event_date', { ascending: false }), trancheAmt()]);
   const p = (data || []).find(x => x.member_id === EVM);
   if (error || !p) return `<div class="err">${esc(error ? error.message : 'Membre introuvable.')}</div>`;
+  SIT[EVM] = p.first_name + ' ' + p.last_name;
+  const tr = t => { const x = (pays || []).find(y => y.tranche === t); return `<div class="row"><div>Tranche ${t} · ${num(x ? x.amount : amt)}<div class="s">${x ? 'Validée le ' + dfr(x.op_date) : 'Non validée'}</div></div>${x ? btnS('Annuler', `cancelPay(${x.id})`, 'red') : btnS('Valider Tranche ' + t, `pay('${EVM}',${t})`, 'green')}</div>`; };
+  const evl = (evs || []).map(e => `<div class="row"><div>${EVL[e.kind]}${e.relative ? ' · ' + REL[e.relative] : ''}<div class="s">${dfr(e.event_date)}</div></div>${btnS('Supprimer', `delEvent(${e.id})`, 'red')}</div>`).join('');
   const opt = (v, l, off, note) => `<label class="opt ${off ? 'off' : ''}"><input type="radio" name="k" value="${v}" ${off ? 'disabled' : ''} required onchange="relToggle()"><span>${l}</span><em>${note}</em></label>`;
   const gOff = !!p.groupe, gN = gOff ? '1/1 · limite atteinte' : '0/1';
-  return `<div class="c" style="background:linear-gradient(135deg,#1e3a8a,#2563eb)"><div style="font-weight:800;font-size:18px">${esc(p.first_name)} ${esc(p.last_name)}</div><div style="font-size:13px;color:#dbe6ff;margin-top:4px">Quel événement a-t-il eu ?</div></div>
-  <form class="c" onsubmit="addEvent(event)" style="padding-top:8px">
+  return `<div class="c" style="background:linear-gradient(135deg,#1e3a8a,#2563eb)"><div style="font-weight:800;font-size:18px">${esc(p.first_name)} ${esc(p.last_name)}</div><div style="font-size:13px;color:#dbe6ff;margin-top:4px">Valider, annuler ou corriger une information</div></div>
+  <div class="c" style="padding-top:8px;padding-bottom:8px"><div style="font-weight:700;padding:6px 0">Cotisations ${YEAR}</div>${tr(1)}${tr(2)}</div>
+  ${evl ? `<div class="c" style="padding-top:8px;padding-bottom:8px"><div style="font-weight:700;padding:6px 0">Événements enregistrés</div>${evl}</div>` : ''}
+  <form class="c" onsubmit="addEvent(event)" style="padding-top:8px"><div style="font-weight:700;padding:8px 0">Ajouter un événement</div>
   ${opt('fiancailles', 'Fiançailles', p.fiancailles >= 1, p.fiancailles >= 1 ? '1/1 · limite atteinte' : '0/1')}
   ${opt('mariage', 'Mariage', gOff, gN)}${opt('circoncision', 'Circoncision', gOff, gN)}${opt('communion', 'Communion', gOff, gN)}
   ${opt('bapteme', 'Baptême', p.baptemes >= 4, p.baptemes + '/4')}${opt('deces', 'Décès (parent 1er degré)', false, p.deces + ' reçu(s)')}
@@ -369,18 +375,19 @@ async function eventV() {
   <button class="b" style="width:100%;margin-top:16px;--c:#15803d;--d:#14532d">Enregistrer l'événement</button></form>
   <div class="s" style="text-align:center">Mariage, circoncision et communion : un seul des trois par membre.</div>`;
 }
+async function cancelPay(id) {
+  if (!confirm("Annuler cette tranche ? L'entrée correspondante sera retirée de la caisse.")) return;
+  const { data, error } = await SB.from('amicale_movements').delete().eq('id', id).select();
+  if (error || !data.length) alert(error ? error.message : "Annulation impossible : exécute d'abord le fichier 5-ajustements.sql dans Supabase.");
+  fill();
+}
+
 async function addEvent(e) {
   e.preventDefault(); const f = new FormData(e.target), k = f.get('k');
   const row = { member_id: EVM, kind: k, event_date: f.get('date') }; if (k === 'deces') row.relative = f.get('rel');
   const { error } = await SB.from('amicale_events').insert(row);
   if (error) { alert(error.message); return; }
-  alert('Événement enregistré.'); go('situation');
-}
-async function logV() {
-  const { data, error } = await SB.rpc('events_log');
-  if (error) return `<div class="err">${esc(error.message)}</div>`;
-  const rows = (data || []).map(e => `<div class="row"><div><b>${esc(e.first_name)} ${esc(e.last_name)}</b><div class="s">${EVL[e.kind]}${e.relative ? ' · ' + REL[e.relative] : ''} · ${dfr(e.event_date)}</div></div>${isAdm() ? btnS('Supprimer', `delEvent(${e.id})`, 'red') : ''}</div>`).join('');
-  return `<div class="c" style="padding-top:8px;padding-bottom:8px">${rows || '<div class="s" style="padding:8px 0">Aucun événement enregistré.</div>'}</div>`;
+  alert('Événement enregistré.'); fill();
 }
 async function delEvent(id) {
   if (!confirm('Supprimer cet événement ? Le compteur du membre sera recalculé.')) return;
@@ -400,33 +407,53 @@ function pickPhoto(inp) {
   }; im.src = r.result; };
   r.readAsDataURL(f);
 }
+let NEWPDF = null;
+function pickPdf(inp) {
+  const f = inp.files[0]; NEWPDF = null; $('#pp').innerHTML = '';
+  if (!f) return;
+  if (f.type !== 'application/pdf') { alert('Choisis un fichier PDF.'); inp.value = ''; return; }
+  if (f.size > 10 * 1024 * 1024) { alert('PDF trop lourd (10 Mo maximum).'); inp.value = ''; return; }
+  NEWPDF = f; $('#pp').innerHTML = `<div class="s" style="margin-top:10px">PDF choisi : ${esc(f.name)}</div>`;
+}
 async function postsV(k) {
-  NEWPH = ''; const cf = PK[k];
+  NEWPH = ''; NEWPDF = null; const cf = PK[k];
   const { data, error } = await SB.from('amicale_posts').select('*').eq('kind', k).order('created_at', { ascending: false }).limit(50);
   if (error) return `<div class="err">${esc(error.message)}</div>`;
   const form = isAdm() ? `<form class="c" onsubmit="addPost(event,'${k}')"><div style="font-weight:700">Ajouter</div>
     ${cf.noTitle ? '' : '<input class="f" name="title" placeholder="Titre" required>'}
     ${cf.ex ? `<input class="f" name="extra" placeholder="${cf.ex}">` : ''}
-    <textarea class="f" name="body" rows="5" placeholder="Texte"${cf.noTitle ? '' : ' required'}></textarea>
-    <label class="b sm" style="margin-top:12px;cursor:pointer;--c:#2563eb;--d:#1e3a8a">Ajouter une photo<input type="file" accept="image/*" hidden onchange="pickPhoto(this)"></label><div id="pp"></div>
+    <textarea class="f" name="body" rows="${cf.pdf ? 3 : 5}" placeholder="Texte${cf.pdf ? ' (facultatif)' : ''}"${cf.noTitle || cf.pdf ? '' : ' required'}></textarea>
+    ${cf.pdf ? '<label class="b sm" style="margin-top:12px;cursor:pointer;--c:#2563eb;--d:#1e3a8a">Ajouter un PDF<input type="file" accept="application/pdf" hidden onchange="pickPdf(this)"></label>'
+      : '<label class="b sm" style="margin-top:12px;cursor:pointer;--c:#2563eb;--d:#1e3a8a">Ajouter une photo<input type="file" accept="image/*" hidden onchange="pickPhoto(this)"></label>'}<div id="pp"></div>
     <button class="b" style="width:100%;margin-top:10px;--c:#facc15;--d:#a16207;color:#1c1917;text-shadow:none">Publier</button></form>` : '';
   const cards = (data || []).map(p => {
     const del = isAdm() ? `<div style="margin-top:12px">${btnS('Supprimer', `delPost(${p.id})`, 'red')}</div>` : '';
-    const txt = `<div style="min-width:0;flex:1">${p.title ? `<div style="font-weight:700;font-size:16px">${esc(p.title)}</div>` : ''}${p.extra ? `<div class="s" style="margin-top:2px">${esc(p.extra)}</div>` : ''}${p.body ? `<div style="font-size:14px;margin-top:8px;line-height:1.5;white-space:pre-wrap">${esc(p.body)}</div>` : ''}<div class="s" style="margin-top:8px">Publié le ${dfr(p.created_at.slice(0, 10))}</div></div>`;
+    const pdf = p.file_url ? `<a class="b sm" href="${esc(p.file_url)}" target="_blank" rel="noopener" style="--c:#2563eb;--d:#1e3a8a;text-decoration:none;margin-top:12px">Ouvrir le PDF</a>` : '';
+    const txt = `<div style="min-width:0;flex:1">${p.title ? `<div style="font-weight:700;font-size:16px">${esc(p.title)}</div>` : ''}${p.extra ? `<div class="s" style="margin-top:2px">${esc(p.extra)}</div>` : ''}${p.body ? `<div style="font-size:14px;margin-top:8px;line-height:1.5;white-space:pre-wrap">${esc(p.body)}</div>` : ''}${pdf}<div class="s" style="margin-top:8px">Publié le ${dfr(p.created_at.slice(0, 10))}</div></div>`;
     if (cf.thumb) return `<div class="c"><div style="display:flex;gap:14px">${p.photo ? `<img class="ph" src="${esc(p.photo)}" alt="">` : '<div class="ph">Photo</div>'}${txt}</div>${del}</div>`;
     return `<div class="c">${p.photo ? `<img src="${esc(p.photo)}" alt="" style="width:100%;max-height:300px;object-fit:cover;border-radius:14px;margin-bottom:12px">` : ''}${txt}${del}</div>`;
   }).join('');
   return `${form}${cards || '<div class="c s">Rien n\'a encore été publié ici.</div>'}`;
 }
 async function addPost(e, k) {
-  e.preventDefault(); const f = new FormData(e.target);
-  const { error } = await SB.from('amicale_posts').insert({ kind: k, title: (f.get('title') || '').trim(), body: (f.get('body') || '').trim(), extra: (f.get('extra') || '').trim() || null, photo: NEWPH || null });
-  if (error) alert(error.message); NEWPH = ''; fill();
+  e.preventDefault(); const f = new FormData(e.target); let file_url = null;
+  if (NEWPDF) {
+    const path = `${k}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.pdf`;
+    const up = await SB.storage.from('amicale-docs').upload(path, NEWPDF, { contentType: 'application/pdf' });
+    if (up.error) { alert("Envoi du PDF impossible : " + up.error.message + " (le fichier 5-ajustements.sql a-t-il été exécuté ?)"); return; }
+    file_url = SB.storage.from('amicale-docs').getPublicUrl(path).data.publicUrl;
+  }
+  const { error } = await SB.from('amicale_posts').insert({ kind: k, title: (f.get('title') || '').trim(), body: (f.get('body') || '').trim(), extra: (f.get('extra') || '').trim() || null, photo: NEWPH || null, file_url });
+  if (error) alert(error.message); NEWPH = ''; NEWPDF = null; fill();
 }
 async function delPost(id) {
   if (!confirm('Supprimer cette publication ?')) return;
+  const { data: old } = await SB.from('amicale_posts').select('file_url').eq('id', id).maybeSingle();
   const { error } = await SB.from('amicale_posts').delete().eq('id', id);
-  if (error) alert(error.message); fill();
+  if (error) { alert(error.message); return; }
+  const u = old && old.file_url, i = u ? u.indexOf('/amicale-docs/') : -1;
+  if (i > 0) await SB.storage.from('amicale-docs').remove([decodeURIComponent(u.slice(i + 14))]);
+  fill();
 }
 
 SB.auth.onAuthStateChange(() => {});
