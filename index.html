@@ -39,6 +39,10 @@ button,input{font-family:inherit}
 .big{width:84px;height:84px;margin:0 auto;border-radius:50%;background:linear-gradient(135deg,#facc15,#c2410c);display:flex;align-items:center;justify-content:center;font-weight:800;color:#1c1917}
 .err{background:#7f1d1d;color:#fecaca;border-radius:10px;padding:10px 12px;font-size:13px}
 .left{text-align:left}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.st{padding:12px}.st b{display:block;font-size:17px;margin-top:6px}
+.sm{min-height:40px!important;font-size:13px!important}
+select.f{appearance:auto}
+.row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--ln);font-size:14px}.row:last-child{border:0}
 </style>
 </head>
 <body>
@@ -106,7 +110,7 @@ function stateView(icon, titre, texte) {
   ${btn('Actualiser', 'boot()', 'blue')}${btn('Se déconnecter', 'logout()', 'gray')}<div class="ft">${FOOT}</div></div>`;
 }
 
-const TITRES = { home: 'Accueil', requests: "Demandes d'inscription", members: 'Membres' };
+const TITRES = { home: 'Accueil', profile: 'Mon profil', budget: 'État du budget', situation: 'Situation des membres', requests: "Demandes d'inscription", members: 'Membres' };
 function go(p) { page = p; menu = false; render(); }
 function tog() { menu = !menu; $('.dr').classList.toggle('on', menu); $('.ov').classList.toggle('on', menu); }
 function item(p, t, col) { return `<button class="i ${page === p ? 'a' : ''}" onclick="go('${p}')"><i style="background:${col}"></i>${t}</button>`; }
@@ -122,7 +126,7 @@ function render() {
   a.innerHTML = `<div class="top"><button class="ic" onclick="tog()" aria-label="Menu">${BURGER}</button><div class="lg"><i class="lo">Logo</i><div><b>Amicale Contingents 17</b><span>${TITRES[page]}</span></div></div></div>
   <main id="c" class="pg"><div class="s">Chargement…</div></main><div class="ft">${FOOT}</div>
   <div class="ov ${menu ? 'on' : ''}" onclick="tog()"></div>
-  <nav class="dr ${menu ? 'on' : ''}">${item('home', 'Accueil', '#3b82f6')}
+  <nav class="dr ${menu ? 'on' : ''}">${item('home', 'Accueil', '#3b82f6')}${item('profile', 'Mon profil', '#3b82f6')}${item('budget', 'État du budget', '#22c55e')}${item('situation', 'Situation des membres', '#14b8a6')}
   ${isAdm() ? item('requests', "Demandes d'inscription", '#f59e0b') + item('members', 'Membres', '#22c55e') : ''}
   <button class="i" onclick="logout()"><i style="background:#9ca3af"></i>Se déconnecter</button><div class="sp">${FOOT}</div></nav>`;
   fill();
@@ -131,17 +135,12 @@ function render() {
 async function fill() {
   const c = $('#c'); let h = '';
   if (page === 'home') h = await homeV();
+  else if (page === 'profile') h = await profileV();
+  else if (page === 'budget') h = await budgetV();
+  else if (page === 'situation') h = await situationV();
   else if (page === 'requests') h = await listV(['pending', 'rejected'], true);
   else h = await listV(['active', 'disabled', 'deleted'], false);
   if (c) c.innerHTML = h;
-}
-
-async function homeV() {
-  const hr = new Date().getHours(), hello = hr >= 18 || hr < 5 ? 'Bonsoir' : 'Bonjour';
-  const { data: n } = await SB.rpc('active_members_count');
-  return `<div style="font-size:22px;font-weight:800;padding:0 4px">${hello}, ${esc(me.first_name)}</div>
-  <div class="c" style="background:linear-gradient(135deg,#15803d,#166534)"><div style="font-size:13px;color:#d1fae5">${SLOGAN}</div><div style="font-size:30px;font-weight:800;margin-top:6px">${n ?? 0}</div><div style="font-size:13px;color:#d1fae5">Membres actifs</div></div>
-  <div class="c"><div style="font-weight:700">Bientôt</div><div class="s" style="margin-top:6px;line-height:1.5">Annonces, budget de la caisse, cotisations, événements et pages d'honneur arrivent aux prochaines étapes.</div></div>`;
 }
 
 const ST = { pending: ['En attente', '#c2410c'], rejected: ['Rejeté', '#b91c1c'], active: ['Actif', '#15803d'], disabled: ['Désactivé', '#4b5563'], deleted: ['Supprimé', '#b91c1c'] };
@@ -174,6 +173,101 @@ async function setRole(id, role) {
   if (error) alert(error.message); fill();
 }
 function del(id) { if (confirm('Supprimer ce compte ? Il pourra être restauré plus tard.')) act(id, 'deleted'); }
+
+
+const YEAR = new Date().getFullYear();
+const num = n => Number(n || 0).toLocaleString('fr-FR');
+const fcfa = n => num(n) + ' FCFA';
+const dfr = d => new Date(d + 'T00:00:00').toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
+const today = () => new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+const btnS = (t, fn, c) => btn(t, fn, c).replace('class="b"', 'class="b sm"');
+async function trancheAmt() {
+  const { data } = await SB.from('amicale_settings').select('value').eq('key', 'tranche_amount').maybeSingle();
+  return Number(data?.value || 0);
+}
+
+async function homeV() {
+  const hr = new Date().getHours(), hello = hr >= 18 || hr < 5 ? 'Bonsoir' : 'Bonjour';
+  const [{ data: n }, { data: sm }] = await Promise.all([SB.rpc('active_members_count'), SB.rpc('budget_summary')]);
+  const b = sm || { entrees: 0, depenses: 0, prev_entrees: 0, prev_depenses: 0 };
+  const d = new Date(), pm = new Date(d.getFullYear(), d.getMonth() - 1, 1).toLocaleDateString('fr-FR', { month: 'short' });
+  return `<div style="font-size:22px;font-weight:800;padding:0 4px">${hello}, ${esc(me.first_name)}</div>
+  <div class="c" style="background:linear-gradient(135deg,#15803d,#166534)"><div style="font-size:13px;color:#d1fae5">${SLOGAN}</div><div style="font-size:30px;font-weight:800;margin-top:6px">${fcfa(b.entrees - b.depenses)}</div><div style="font-size:13px;color:#d1fae5;margin-top:2px">Somme globale disponible en caisse</div></div>
+  <div class="g3"><div class="c st"><div class="s">Membres actifs</div><b>${n ?? 0}</b></div>
+  <div class="c st"><div class="s">Entrées ${pm}</div><b style="color:#4ade80">${num(b.prev_entrees)}</b></div>
+  <div class="c st"><div class="s">Dépenses ${pm}</div><b style="color:#f87171">${num(b.prev_depenses)}</b></div></div>
+  <div class="c"><div style="font-weight:700">Bientôt</div><div class="s" style="margin-top:6px;line-height:1.5">Annonces avec notifications, événements, page d'honneur et page « À nos morts » arrivent aux prochaines étapes.</div></div>`;
+}
+
+async function profileV() {
+  const [amt, { data: pay }] = await Promise.all([trancheAmt(),
+    SB.from('amicale_movements').select('tranche,amount,op_date').eq('member_id', me.id).eq('category', 'cotisation').eq('year', YEAR)]);
+  const get = t => (pay || []).find(x => x.tranche === t);
+  const paid = (pay || []).reduce((a, x) => a + x.amount, 0), tot = amt * 2, pct = tot ? Math.min(100, Math.round(paid * 100 / tot)) : 0;
+  const row = t => { const p = get(t); return `<div class="row"><div>Tranche ${t} · ${num(p ? p.amount : amt)}<div class="s">${p ? 'Payée le ' + dfr(p.op_date) : 'À payer'}</div></div><span class="tag" style="background:${p ? '#15803d' : '#c2410c'}">${p ? 'Payée' : 'En attente'}</span></div>`; };
+  const r = RL[me.role];
+  return `<div class="c" style="background:linear-gradient(135deg,#1e3a8a,#2563eb)"><div class="m"><div style="font-weight:800;font-size:18px">${esc(me.first_name)} ${esc(me.last_name)}</div>${r ? `<span class="tag" style="background:${r[1]}">${r[0]}</span>` : ''}</div><div style="font-size:13px;color:#dbe6ff;margin-top:4px">${esc(me.phone)}</div></div>
+  <div class="c" style="background:linear-gradient(135deg,#15803d,#166534)"><div style="font-size:13px;color:#d1fae5">Cotisations ${YEAR}</div><div style="font-size:24px;font-weight:800;margin-top:4px">${num(paid)} / ${num(tot)} FCFA</div>
+  <div style="height:12px;border-radius:6px;background:#14532d;margin-top:10px;overflow:hidden"><div style="width:${pct}%;height:100%;background:#86efac"></div></div><div style="font-size:13px;color:#d1fae5;margin-top:6px">${pct} % payé</div></div>
+  <div class="c" style="padding-top:6px;padding-bottom:6px">${row(1)}${row(2)}</div>
+  <div class="c"><div style="font-weight:700">Mes événements</div><div class="s" style="margin-top:6px;line-height:1.5">Fiançailles, mariage, circoncision ou communion, baptêmes et décès : cette partie arrive à l'étape suivante.</div></div>`;
+}
+
+async function budgetV() {
+  const [{ data: sm }, { data: list, error }] = await Promise.all([SB.rpc('budget_summary'),
+    SB.from('amicale_movements').select('*').order('op_date', { ascending: false }).order('id', { ascending: false }).limit(60)]);
+  if (error) return `<div class="err">${esc(error.message)}</div>`;
+  const b = sm || { entrees: 0, depenses: 0 };
+  const rows = (list || []).map(m => `<div class="row"><div style="min-width:0"><div>${esc(m.description)}</div><div class="s">${m.kind === 'entree' ? 'Entrée' : 'Dépense'} · ${dfr(m.op_date)}</div></div>
+    <div style="text-align:right;white-space:nowrap"><b style="color:${m.kind === 'entree' ? '#4ade80' : '#f87171'}">${m.kind === 'entree' ? '+' : '−'} ${num(m.amount)}</b>${isOwn() ? `<div style="margin-top:6px">${btnS('Supprimer', `delMov(${m.id})`, 'red')}</div>` : ''}</div></div>`).join('');
+  const form = isAdm() ? `<form class="c" onsubmit="addMov(event)"><div style="font-weight:700">Ajouter un mouvement</div>
+    <select class="f" name="kind" aria-label="Type"><option value="entree">Entrée d'argent</option><option value="depense">Dépense</option></select>
+    <input class="f" name="amount" type="number" min="1" step="1" inputmode="numeric" placeholder="Montant (FCFA)" required>
+    <input class="f" name="desc" placeholder="Description" required>
+    <input class="f" name="date" type="date" value="${today()}" required>
+    <button class="b" style="width:100%;margin-top:14px;min-height:52px;background:#facc15;color:#1c1917;box-shadow:0 5px 0 #a16207">Enregistrer</button></form>` : '';
+  return `<div class="g3"><div class="c st" style="background:linear-gradient(135deg,#15803d,#166534)"><div class="s" style="color:#d1fae5">Entrées</div><b>${num(b.entrees)}</b></div>
+  <div class="c st" style="background:linear-gradient(135deg,#b91c1c,#7f1d1d)"><div class="s" style="color:#fecaca">Dépenses</div><b>${num(b.depenses)}</b></div>
+  <div class="c st" style="background:linear-gradient(135deg,#2563eb,#1e3a8a)"><div class="s" style="color:#dbe6ff">Solde</div><b>${num(b.entrees - b.depenses)}</b></div></div>
+  ${form}<div class="c" style="padding-top:8px;padding-bottom:8px"><div style="font-weight:700;padding:6px 0">Derniers mouvements</div>${rows || '<div class="s" style="padding:8px 0">Aucun mouvement pour le moment.</div>'}</div>`;
+}
+async function addMov(e) {
+  e.preventDefault(); const f = new FormData(e.target);
+  const { error } = await SB.from('amicale_movements').insert({ kind: f.get('kind'), amount: parseInt(f.get('amount'), 10), description: f.get('desc').trim(), op_date: f.get('date') });
+  if (error) alert(error.message); fill();
+}
+async function delMov(id) {
+  if (!confirm('Supprimer ce mouvement ? Le solde sera recalculé.')) return;
+  const { error } = await SB.from('amicale_movements').delete().eq('id', id);
+  if (error) alert(error.message); fill();
+}
+
+let SIT = {};
+async function situationV() {
+  const [amt, { data, error }] = await Promise.all([trancheAmt(), SB.rpc('members_situation', { y: YEAR })]);
+  if (error) return `<div class="err">${esc(error.message)}</div>`;
+  SIT = {}; (data || []).forEach(p => SIT[p.member_id] = p.first_name + ' ' + p.last_name);
+  const chip = (ok, t) => `<span class="tag" style="background:${ok ? '#15803d' : '#4b5563'}">T${t} ${ok ? 'payée' : 'non payée'}</span>`;
+  const rows = (data || []).map(p => `<div class="c"><div class="m"><b>${esc(p.first_name)} ${esc(p.last_name)}</b><span class="s">${(p.t1 ? 1 : 0) + (p.t2 ? 1 : 0)}/2</span></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">${chip(p.t1, 1)}${chip(p.t2, 2)}</div>
+    ${isAdm() && (!p.t1 || !p.t2) ? `<div class="g2" style="margin-top:10px">${!p.t1 ? btnS('Enregistrer T1', `pay('${p.member_id}',1)`, 'green') : '<span></span>'}${!p.t2 ? btnS('Enregistrer T2', `pay('${p.member_id}',2)`, 'green') : '<span></span>'}</div>` : ''}</div>`).join('');
+  const cfg = isAdm() ? `<form class="c" onsubmit="saveAmt(event)"><label class="s">Montant d'une tranche (FCFA)<input class="f" name="amt" type="number" min="0" step="1" inputmode="numeric" value="${amt}" required></label>
+    <button class="b sm" style="width:100%;margin-top:12px;background:#2563eb;box-shadow:0 5px 0 #1e3a8a">Enregistrer le montant</button></form>` : '';
+  return `<div style="font-weight:700;font-size:16px">Cotisations ${YEAR} · tranche : ${fcfa(amt)}</div>${cfg}${rows || '<div class="c s">Aucun membre actif.</div>'}
+  <div class="s" style="text-align:center">Les événements de chaque membre s'ajouteront ici à l'étape suivante.</div>`;
+}
+async function pay(id, t) {
+  const amt = await trancheAmt();
+  if (!amt) { alert("Définis d'abord le montant d'une tranche."); return; }
+  if (!confirm(`Enregistrer la tranche ${t} de ${SIT[id]} (${fcfa(amt)}) ? Une entrée sera ajoutée à la caisse.`)) return;
+  const { error } = await SB.from('amicale_movements').insert({ kind: 'entree', amount: amt, description: `Cotisation tranche ${t} ${YEAR} — ${SIT[id]}`, category: 'cotisation', member_id: id, year: YEAR, tranche: t });
+  if (error) alert(/duplicate|unique/i.test(error.message) ? 'Cette tranche est déjà enregistrée.' : error.message); fill();
+}
+async function saveAmt(e) {
+  e.preventDefault(); const v = parseInt(new FormData(e.target).get('amt'), 10);
+  const { error } = await SB.from('amicale_settings').update({ value: String(v) }).eq('key', 'tranche_amount');
+  alert(error ? error.message : 'Montant enregistré.'); fill();
+}
 
 SB.auth.onAuthStateChange(() => {});
 boot();
