@@ -238,11 +238,11 @@ async function homeV() {
 
 async function profileV() {
   const [amt, { data: pay }, { data: ov }, { data: evs }] = await Promise.all([trancheAmt(),
-    SB.from('amicale_movements').select('tranche,amount,op_date').eq('member_id', me.id).eq('category', 'cotisation').eq('year', YEAR),
+    SB.from('amicale_tranches').select('id,tranche,validated_at').eq('member_id', me.id).eq('year', YEAR),
     SB.rpc('members_overview', { y: YEAR }), SB.from('amicale_events').select('*').eq('member_id', me.id).eq('kind', 'deces')]);
   const get = t => (pay || []).find(x => x.tranche === t);
-  const paid = (pay || []).reduce((a, x) => a + x.amount, 0), tot = amt * 2, pct = tot ? Math.min(100, Math.round(paid * 100 / tot)) : 0;
-  const row = t => { const p = get(t); return `<div class="row"><div>Tranche ${t} · ${num(p ? p.amount : amt)}<div class="s">${p ? 'Payée le ' + dfr(p.op_date) : 'À payer'}</div></div><span class="tag" style="background:${p ? '#15803d' : '#c2410c'}">${p ? 'Payée' : 'En attente'}</span></div>`; };
+  const paid = (pay || []).length * amt, tot = amt * 2, pct = tot ? Math.min(100, Math.round(paid * 100 / tot)) : 0;
+  const row = t => { const p = get(t); return `<div class="row"><div>Tranche ${t} · ${num(amt)}<div class="s">${p ? 'Payée le ' + dfr(p.validated_at) : 'À payer'}</div></div><span class="tag" style="background:${p ? '#15803d' : '#c2410c'}">${p ? 'Payée' : 'En attente'}</span></div>`; };
   const r = RL[me.role];
   const o = (ov || []).find(x => x.member_id === me.id) || { fiancailles: 0, baptemes: 0, deces: 0 };
   const fi = o.fiancailles >= 1, ma = o.groupe === 'mariage';
@@ -299,15 +299,14 @@ async function situationV() {
     ${isAdm() ? `${!p.t1 || !p.t2 ? `<div class="g2">${!p.t1 ? btnS('Valider Tranche 1', `pay('${p.member_id}',1)`, 'green') : ''}${!p.t2 ? btnS('Valider Tranche 2', `pay('${p.member_id}',2)`, 'green') : ''}</div>` : ''}<div style="margin-top:10px">${btnS('Gérer la situation', `openEvent('${p.member_id}')`, 'or')}</div>` : ''}</div>`).join('');
   const cfg = isAdm() ? `<form class="c" onsubmit="saveAmt(event)"><label class="s">Montant d'une tranche (FCFA)<input class="f" name="amt" type="number" min="0" step="1" inputmode="numeric" value="${amt}" required></label>
     <button class="b sm" style="width:100%;margin-top:12px">Enregistrer le montant</button></form>` : '';
-  return `<div style="font-weight:700;font-size:16px">Situation ${YEAR} · tranche : ${fcfa(amt)}</div>${cfg}${rows || '<div class="c s">Aucun membre actif.</div>'}`;
+  return `<div style="font-weight:700;font-size:16px">Situation ${YEAR} · tranche : ${fcfa(amt)}</div><div class="s">Valider une tranche informe le membre de sa situation. La caisse n'est pas modifiée.</div>${cfg}${rows || '<div class="c s">Aucun membre actif.</div>'}`;
 }
 
 async function pay(id, t) {
-  const amt = await trancheAmt();
-  if (!amt) { alert("Définis d'abord le montant d'une tranche."); return; }
-  if (!confirm(`Valider la tranche ${t} de ${SIT[id]} (${fcfa(amt)}) ? Une entrée sera ajoutée à la caisse.`)) return;
-  const { error } = await SB.from('amicale_movements').insert({ kind: 'entree', amount: amt, description: `Cotisation tranche ${t} ${YEAR} — ${SIT[id]}`, category: 'cotisation', member_id: id, year: YEAR, tranche: t });
-  if (error) alert(/duplicate|unique/i.test(error.message) ? 'Cette tranche est déjà enregistrée.' : error.message); fill();
+  if (!confirm(`Valider la tranche ${t} de ${SIT[id]} ? La caisse ne sera pas modifiée.`)) return;
+  const { error } = await SB.from('amicale_tranches').insert({ member_id: id, year: YEAR, tranche: t });
+  if (error) alert(/duplicate|unique/i.test(error.message) ? 'Cette tranche est déjà validée.' : error.message + " (le fichier 6-tranches-hors-caisse.sql a-t-il été exécuté ?)");
+  fill();
 }
 async function saveAmt(e) {
   e.preventDefault(); const v = parseInt(new FormData(e.target).get('amt'), 10);
@@ -354,12 +353,12 @@ function relToggle() { const k = document.querySelector('input[name=k]:checked')
 async function eventV() {
   if (!EVM) return '<div class="c s">Choisis un membre dans « Situation des membres ».</div>';
   const [{ data, error }, { data: pays }, { data: evs }, amt] = await Promise.all([SB.rpc('members_overview', { y: YEAR }),
-    SB.from('amicale_movements').select('id,tranche,amount,op_date').eq('member_id', EVM).eq('category', 'cotisation').eq('year', YEAR),
+    SB.from('amicale_tranches').select('id,tranche,validated_at').eq('member_id', EVM).eq('year', YEAR),
     SB.from('amicale_events').select('*').eq('member_id', EVM).order('event_date', { ascending: false }), trancheAmt()]);
   const p = (data || []).find(x => x.member_id === EVM);
   if (error || !p) return `<div class="err">${esc(error ? error.message : 'Membre introuvable.')}</div>`;
   SIT[EVM] = p.first_name + ' ' + p.last_name;
-  const tr = t => { const x = (pays || []).find(y => y.tranche === t); return `<div class="row"><div>Tranche ${t} · ${num(x ? x.amount : amt)}<div class="s">${x ? 'Validée le ' + dfr(x.op_date) : 'Non validée'}</div></div>${x ? btnS('Annuler', `cancelPay(${x.id})`, 'red') : btnS('Valider Tranche ' + t, `pay('${EVM}',${t})`, 'green')}</div>`; };
+  const tr = t => { const x = (pays || []).find(y => y.tranche === t); return `<div class="row"><div>Tranche ${t} · ${num(amt)}<div class="s">${x ? 'Validée le ' + dfr(x.validated_at) : 'Non validée'}</div></div>${x ? btnS('Annuler', `cancelPay(${x.id})`, 'red') : btnS('Valider Tranche ' + t, `pay('${EVM}',${t})`, 'green')}</div>`; };
   const evl = (evs || []).map(e => `<div class="row"><div>${EVL[e.kind]}${e.relative ? ' · ' + REL[e.relative] : ''}<div class="s">${dfr(e.event_date)}</div></div>${btnS('Supprimer', `delEvent(${e.id})`, 'red')}</div>`).join('');
   const opt = (v, l, off, note) => `<label class="opt ${off ? 'off' : ''}"><input type="radio" name="k" value="${v}" ${off ? 'disabled' : ''} required onchange="relToggle()"><span>${l}</span><em>${note}</em></label>`;
   const gOff = !!p.groupe, gN = gOff ? '1/1 · limite atteinte' : '0/1';
@@ -376,12 +375,11 @@ async function eventV() {
   <div class="s" style="text-align:center">Mariage, circoncision et communion : un seul des trois par membre.</div>`;
 }
 async function cancelPay(id) {
-  if (!confirm("Annuler cette tranche ? L'entrée correspondante sera retirée de la caisse.")) return;
-  const { data, error } = await SB.from('amicale_movements').delete().eq('id', id).select();
-  if (error || !data.length) alert(error ? error.message : "Annulation impossible : exécute d'abord le fichier 5-ajustements.sql dans Supabase.");
+  if (!confirm('Annuler la validation de cette tranche ?')) return;
+  const { data, error } = await SB.from('amicale_tranches').delete().eq('id', id).select();
+  if (error || !data.length) alert(error ? error.message : "Annulation impossible : exécute d'abord le fichier 6-tranches-hors-caisse.sql dans Supabase.");
   fill();
 }
-
 async function addEvent(e) {
   e.preventDefault(); const f = new FormData(e.target), k = f.get('k');
   const row = { member_id: EVM, kind: k, event_date: f.get('date') }; if (k === 'deces') row.relative = f.get('rel');
