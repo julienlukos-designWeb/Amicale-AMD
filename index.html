@@ -195,9 +195,9 @@ async function listV(statuses, req) {
     else ac = `<div class="g2">${btn(p.status === 'deleted' ? 'Restaurer' : 'Réactiver', `act('${p.id}','active')`, 'green')}</div>`;
     if (isOwn() && p.id !== me.id && p.role !== 'owner' && ['active', 'disabled'].includes(p.status))
       ac += `<div style="margin-top:12px">${btn('Supprimer', `del('${p.id}')`, 'red')}</div>`;
-    return `<div class="c"><div class="m">${who}<span class="tag" style="background:${t[1]}">${t[0]}</span></div>${ac}</div>`;
+    return `<div class="c" data-n="${esc(norm(p.first_name + ' ' + p.last_name + ' ' + p.phone))}"><div class="m">${who}<span class="tag" style="background:${t[1]}">${t[0]}</span></div>${ac}</div>`;
   }).join('');
-  return `<div style="font-weight:700;font-size:16px">${req ? data.length + ' demande(s)' : data.length + ' compte(s)'}</div>${rows}`;
+  return `<div style="font-weight:700;font-size:16px">${req ? data.length + ' demande(s)' : data.length + ' compte(s)'}</div>${req ? '' : searchBox()}${rows}`;
 }
 async function act(id, status) {
   const { error } = await SB.from('profiles').update({ status }).eq('id', id);
@@ -229,7 +229,7 @@ async function homeV() {
   const d = new Date(), pm = new Date(d.getFullYear(), d.getMonth() - 1, 1).toLocaleDateString('fr-FR', { month: 'short' });
   const rap = (ps || []).find(p => p.kind === 'rappel'), ann = (ps || []).filter(p => p.kind === 'annonce').slice(0, 2);
   return `<div style="padding:2px 4px"><div class="s">${d.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}</div><div style="font-size:28px;font-weight:800;letter-spacing:-.5px;margin-top:2px">${hello}, ${esc(me.first_name)}</div></div>
-  <div class="c" style="background:linear-gradient(135deg,#15803d,#166534)"><div style="font-size:13px;color:#d1fae5">Somme globale disponible en caisse</div><div style="font-size:30px;font-weight:800;margin-top:6px">${fcfa(b.entrees - b.depenses)}</div></div>
+  <div class="c" style="background:linear-gradient(135deg,#15803d,#166534)"><div style="font-size:13px;color:#d1fae5">Somme globale disponible en caisse</div><div style="font-size:30px;font-weight:800;margin-top:6px">${fcfa((b.opening || 0) + b.entrees - b.depenses)}</div></div>
   <div class="g3">${stat('Membres actifs', n ?? 0, "go('situation')", 'blue')}${stat('Entrées ' + pm, num(b.prev_entrees), "go('budget')", 'green')}${stat('Dépenses ' + pm, num(b.prev_depenses), "go('budget')", 'red')}</div>
   <div class="q">${btn(ico('wallet') + 'État du budget', "go('budget')", 'blue')}${btn(ico('user') + 'Mon profil', "go('profile')", 'green')}${isAdm() ? btn(ico('users') + 'Situation', "go('situation')", 'teal') + btn(ico('inbox') + 'Demandes', "go('requests')", 'or') : btn(ico('users') + 'Situation des membres', "go('situation')", 'teal').replace('class="b"', 'class="b wide"')}</div>
   ${rap ? `<div class="c" style="background:linear-gradient(135deg,#7f1d1d,#451a1a)"><div style="font-weight:800;font-size:13px;color:#fecaca">RAPPEL IMPORTANT</div><div style="font-weight:700;margin-top:6px">${esc(rap.title)}</div><div style="font-size:14px;margin-top:4px;line-height:1.4;white-space:pre-wrap">${esc(rap.body)}</div></div>` : ''}
@@ -259,24 +259,51 @@ async function profileV() {
   ${er('Décès', o.deces ? 'Parent de premier degré : ' + (evs || []).map(e => REL[e.relative]).join(', ') : 'Parent de premier degré uniquement', o.deces + ' reçu(s)', o.deces ? '#b45309' : X)}</div>`;
 }
 
+let BM = null;
+const MN = (y, m) => { const t = new Date(y, m - 1, 1).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' }); return t.charAt(0).toUpperCase() + t.slice(1); };
+const CHEV = d => `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${d}"/></svg>`;
+function shiftMonth(d) {
+  const nd = new Date(BM.y, BM.m - 1 + d, 1), now = new Date();
+  if (nd > new Date(now.getFullYear(), now.getMonth(), 1)) return;
+  BM = { y: nd.getFullYear(), m: nd.getMonth() + 1 }; fill();
+}
 async function budgetV() {
-  const [{ data: sm }, { data: list, error }] = await Promise.all([SB.rpc('budget_summary'),
-    SB.from('amicale_movements').select('*').order('op_date', { ascending: false }).order('id', { ascending: false }).limit(60)]);
+  const now = new Date(); if (!BM) BM = { y: now.getFullYear(), m: now.getMonth() + 1 };
+  const p2 = n => String(n).padStart(2, '0');
+  const d0 = `${BM.y}-${p2(BM.m)}-01`, d1 = BM.m === 12 ? `${BM.y + 1}-01-01` : `${BM.y}-${p2(BM.m + 1)}-01`;
+  const [{ data: sm }, { data: mo }, { data: list, error }] = await Promise.all([SB.rpc('budget_summary'), SB.rpc('budget_month', { y: BM.y, m: BM.m }),
+    SB.from('amicale_movements').select('*').gte('op_date', d0).lt('op_date', d1).order('op_date', { ascending: false }).order('id', { ascending: false })]);
   if (error) return `<div class="err">${esc(error.message)}</div>`;
-  const b = sm || { entrees: 0, depenses: 0 };
+  const g = sm || { opening: 0, entrees: 0, depenses: 0 }, k = mo || { report: 0, entrees: 0, depenses: 0 };
+  const total = (g.opening || 0) + g.entrees - g.depenses, fin = k.report + k.entrees - k.depenses;
+  const cur = BM.y === now.getFullYear() && BM.m === now.getMonth() + 1;
   const rows = (list || []).map(m => `<div class="row"><div style="min-width:0"><div>${esc(m.description)}</div><div class="s">${m.kind === 'entree' ? 'Entrée' : 'Dépense'} · ${dfr(m.op_date)}</div></div>
     <div style="text-align:right;white-space:nowrap"><b style="color:${m.kind === 'entree' ? '#4ade80' : '#f87171'}">${m.kind === 'entree' ? '+' : '−'} ${num(m.amount)}</b>${isOwn() ? `<div style="margin-top:6px">${btnS('Supprimer', `delMov(${m.id})`, 'red')}</div>` : ''}</div></div>`).join('');
   const form = isAdm() ? `<form class="c" onsubmit="addMov(event)"><div style="font-weight:700">Ajouter un mouvement</div>
     <select class="f" name="kind" aria-label="Type"><option value="entree">Entrée d'argent</option><option value="depense">Dépense</option></select>
     <input class="f" name="amount" type="number" min="1" step="1" inputmode="numeric" placeholder="Montant (FCFA)" required>
     <input class="f" name="desc" placeholder="Description" required>
-    <input class="f" name="date" type="date" value="${today()}" required>
+    <input class="f" name="date" type="date" value="${cur ? today() : d0}" required>
     <button class="b" style="width:100%;margin-top:14px;--c:#facc15;--d:#a16207;color:#1c1917;text-shadow:none">Enregistrer</button></form>` : '';
-  return `<div class="g3"><div class="c st" style="background:linear-gradient(135deg,#15803d,#166534)"><div class="s" style="color:#d1fae5">Entrées</div><b>${num(b.entrees)}</b></div>
-  <div class="c st" style="background:linear-gradient(135deg,#b91c1c,#7f1d1d)"><div class="s" style="color:#fecaca">Dépenses</div><b>${num(b.depenses)}</b></div>
-  <div class="c st" style="background:linear-gradient(135deg,#2563eb,#1e3a8a)"><div class="s" style="color:#dbe6ff">Solde</div><b>${num(b.entrees - b.depenses)}</b></div></div>
-  ${form}<div class="c" style="padding-top:8px;padding-bottom:8px"><div style="font-weight:700;padding:6px 0">Derniers mouvements</div>${rows || '<div class="s" style="padding:8px 0">Aucun mouvement pour le moment.</div>'}</div>`;
+  const open = isAdm() ? `<form class="c" onsubmit="saveOpening(event)"><label class="s">Solde initial (report de 2025), en FCFA<input class="f" name="op" type="number" step="1" inputmode="numeric" value="${g.opening || 0}" required></label>
+    <button class="b sm" style="width:100%;margin-top:12px">Enregistrer le solde initial</button></form>` : '';
+  return `<div class="c" style="background:linear-gradient(135deg,#15803d,#166534)"><div style="font-size:13px;color:#d1fae5">Somme disponible en caisse</div><div style="font-size:30px;font-weight:800;margin-top:6px">${fcfa(total)}</div><div style="font-size:12px;color:#d1fae5;margin-top:4px">dont solde initial (report 2025) : ${fcfa(g.opening || 0)}</div></div>
+  <div class="c m" style="padding:8px"><button class="ic" onclick="shiftMonth(-1)" aria-label="Mois précédent">${CHEV('M15 5l-7 7 7 7')}</button><b>${MN(BM.y, BM.m)}</b><button class="ic" onclick="shiftMonth(1)" aria-label="Mois suivant" ${cur ? 'disabled style="opacity:.3"' : ''}>${CHEV('M9 5l7 7-7 7')}</button></div>
+  <div class="g3"><div class="c st" style="background:linear-gradient(135deg,#15803d,#166534)"><div class="s" style="color:#d1fae5">Entrées</div><b>${num(k.entrees)}</b></div>
+  <div class="c st" style="background:linear-gradient(135deg,#b91c1c,#7f1d1d)"><div class="s" style="color:#fecaca">Dépenses</div><b>${num(k.depenses)}</b></div>
+  <div class="c st" style="background:linear-gradient(135deg,#2563eb,#1e3a8a)"><div class="s" style="color:#dbe6ff">Solde fin de mois</div><b>${num(fin)}</b></div></div>
+  <div class="s" style="text-align:center">Solde au début du mois : ${fcfa(k.report)}</div>
+  ${form}<div class="c" style="padding-top:8px;padding-bottom:8px"><div style="font-weight:700;padding:6px 0">Détail de ${MN(BM.y, BM.m)}</div>${rows || '<div class="s" style="padding:8px 0">Aucun mouvement ce mois-ci.</div>'}</div>${open}`;
 }
+async function saveOpening(e) {
+  e.preventDefault(); const v = parseInt(new FormData(e.target).get('op'), 10);
+  const { data, error } = await SB.from('amicale_settings').update({ value: String(v) }).eq('key', 'opening_balance').select();
+  if (error || !data.length) { alert(error ? error.message : "Exécute d'abord le fichier 7-budget-par-mois.sql dans Supabase."); return; }
+  alert('Solde initial enregistré.'); fill();
+}
+const norm = t => String(t || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+const searchBox = () => '<input class="f" type="search" placeholder="Rechercher un membre" aria-label="Rechercher un membre" oninput="filterCards(this.value)" style="margin-top:0">';
+function filterCards(q) { q = norm(q).trim(); document.querySelectorAll('#c [data-n]').forEach(e => { e.style.display = !q || e.dataset.n.includes(q) ? '' : 'none'; }); }
 async function addMov(e) {
   e.preventDefault(); const f = new FormData(e.target);
   const { error } = await SB.from('amicale_movements').insert({ kind: f.get('kind'), amount: parseInt(f.get('amount'), 10), description: f.get('desc').trim(), op_date: f.get('date') });
@@ -294,12 +321,12 @@ async function situationV() {
   if (error) return `<div class="err">${esc(error.message)}</div>`;
   SIT = {}; (data || []).forEach(p => SIT[p.member_id] = p.first_name + ' ' + p.last_name);
   const chip = (ok, t) => `<span class="tag" style="background:${ok ? '#15803d' : '#4b5563'}">${t}</span>`;
-  const rows = (data || []).map(p => `<div class="c"><div class="m"><b>${esc(p.first_name)} ${esc(p.last_name)}</b><span class="s">${(p.t1 ? 1 : 0) + (p.t2 ? 1 : 0)}/2 tranches</span></div>
+  const rows = (data || []).map(p => `<div class="c" data-n="${esc(norm(p.first_name + ' ' + p.last_name))}"><div class="m"><b>${esc(p.first_name)} ${esc(p.last_name)}</b><span class="s">${(p.t1 ? 1 : 0) + (p.t2 ? 1 : 0)}/2 tranches</span></div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">${chip(p.t1, 'T1 ' + (p.t1 ? 'payée' : 'non payée'))}${chip(p.t2, 'T2 ' + (p.t2 ? 'payée' : 'non payée'))}${chip(p.fiancailles > 0, 'Fiançailles ' + p.fiancailles + '/1')}${chip(!!p.groupe, p.groupe ? EVL[p.groupe] + ' 1/1' : 'Mar./Circ./Comm. 0/1')}${chip(p.baptemes > 0, 'Baptêmes ' + p.baptemes + '/4')}${chip(p.deces > 0, 'Décès ' + p.deces)}</div>
     ${isAdm() ? `${!p.t1 || !p.t2 ? `<div class="g2">${!p.t1 ? btnS('Valider Tranche 1', `pay('${p.member_id}',1)`, 'green') : ''}${!p.t2 ? btnS('Valider Tranche 2', `pay('${p.member_id}',2)`, 'green') : ''}</div>` : ''}<div style="margin-top:10px">${btnS('Gérer la situation', `openEvent('${p.member_id}')`, 'or')}</div>` : ''}</div>`).join('');
   const cfg = isAdm() ? `<form class="c" onsubmit="saveAmt(event)"><label class="s">Montant d'une tranche (FCFA)<input class="f" name="amt" type="number" min="0" step="1" inputmode="numeric" value="${amt}" required></label>
     <button class="b sm" style="width:100%;margin-top:12px">Enregistrer le montant</button></form>` : '';
-  return `<div style="font-weight:700;font-size:16px">Situation ${YEAR} · tranche : ${fcfa(amt)}</div><div class="s">Valider une tranche informe le membre de sa situation. La caisse n'est pas modifiée.</div>${cfg}${rows || '<div class="c s">Aucun membre actif.</div>'}`;
+  return `<div style="font-weight:700;font-size:16px">Situation ${YEAR} · tranche : ${fcfa(amt)}</div><div class="s">Valider une tranche informe le membre de sa situation. La caisse n'est pas modifiée.</div>${cfg}${searchBox()}${rows || '<div class="c s">Aucun membre actif.</div>'}`;
 }
 
 async function pay(id, t) {
