@@ -20,6 +20,9 @@ button,input,select{font-family:inherit}
 .ic{width:44px;height:44px;border:0;background:rgba(255,255,255,.07);border-radius:14px;color:#fff;display:flex;align-items:center;justify-content:center;flex:none}
 .lg{display:flex;align-items:center;gap:10px;min-width:0}
 .lg>div{min-width:0}.lg b{display:block;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.lg span{display:block;font-size:11px;color:var(--mu)}
+.ic{position:relative}
+.bdg{margin-left:auto;background:#ef4444;color:#fff;border-radius:999px;min-width:22px;height:22px;padding:0 7px;font-size:12px;font-weight:700;display:none;align-items:center;justify-content:center}
+.dot{position:absolute;top:7px;right:7px;width:12px;height:12px;border-radius:50%;background:#ef4444;border:2px solid #14171f;display:none}
 .lo{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#facc15,#c2410c);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;color:#1c1917;font-style:normal;flex:none;overflow:hidden;box-shadow:0 0 0 2px rgba(255,255,255,.18)}
 .lo img,.big img{width:100%;height:100%;object-fit:cover}
 .pg{max-width:560px;margin:0 auto;padding:18px 16px 8px;display:flex;flex-direction:column;gap:14px}
@@ -71,7 +74,7 @@ select.f{appearance:auto}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 const SB = supabase.createClient('https://fwodbaildriqkmpplutj.supabase.co', 'sb_publishable_yDfRe6HmyHgGVo1AuuosYg_h9LDlWLA');
-const SLOGAN = 'Unis pour construire demain';
+const SLOGAN = 'Foula - Fiit - Fayda';
 let BR = { name: 'A.M.D', logo: 'logo.png' };
 const logo = () => BR.logo ? `<img src="${esc(BR.logo)}" alt="Logo" onerror="this.outerHTML='Logo'">` : 'Logo';
 const FOOT = 'Administrateur et créateur: Julien D. Y. LUKOS';
@@ -111,7 +114,7 @@ function authView() {
   <div class="tabs"><button class="${up ? '' : 'on'}" onclick="setTab('in')">Connexion</button><button class="${up ? 'on' : ''}" onclick="setTab('up')">Créer un compte</button></div>
   ${msg ? `<div class="err" role="alert">${esc(msg)}</div>` : ''}
   <form class="left" onsubmit="${up ? 'signup' : 'signin'}(event)">
-  ${up ? `<label class="s">Prénom<input class="f" name="fn" required autocomplete="given-name"></label><label class="s" style="display:block;margin-top:10px">Nom<input class="f" name="ln" required autocomplete="family-name"></label>` : ''}
+  ${up ? `<label class="s">Prénom<input class="f" name="fn" required autocomplete="given-name"></label><label class="s" style="display:block;margin-top:10px">Nom (chiffres acceptés, ex. : Sarr N°1)<input class="f" name="ln" required autocomplete="family-name" placeholder="Sarr N°1"></label>` : ''}
   <label class="s" style="display:block;margin-top:10px">Numéro de téléphone<input class="f" name="ph" type="tel" required autocomplete="tel"></label>
   <label class="s" style="display:block;margin-top:10px">Mot de passe${up ? ' (6 caractères minimum)' : ''}<input class="f" name="pw" type="password" required minlength="6" autocomplete="${up ? 'new-password' : 'current-password'}"></label>
   <button class="b" style="width:100%;margin-top:18px;--c:${up ? '#15803d' : '#2563eb'};--d:${up ? '#14532d' : '#1e3a8a'}">${up ? 'Créer mon compte' : 'Se connecter'}</button></form>
@@ -160,14 +163,14 @@ function render() {
     disabled: ['Compte désactivé', 'Ton compte est désactivé. Contacte un administrateur pour le réactiver.'],
     deleted: ['Compte supprimé', 'Ce compte n\'est plus actif. Contacte un administrateur de l\'amicale.'] }[me.status];
   if (m) { a.innerHTML = stateView('', m[0], m[1]); return; }
-  a.innerHTML = `<div class="top"><button class="ic" onclick="tog()" aria-label="Menu">${BURGER}</button><div class="lg"><i class="lo">${logo()}</i><div><b>${esc(BR.name)}</b><span>${TITRES[page]}</span></div></div></div>
+  a.innerHTML = `<div class="top"><button class="ic" onclick="tog()" aria-label="Menu">${BURGER}<span class="dot" id="bd-dot"></span></button><div class="lg"><i class="lo">${logo()}</i><div><b>${esc(BR.name)}</b><span>${TITRES[page]}</span></div></div></div>
   <main id="c" class="pg"><div class="s">Chargement…</div></main><div class="ft">${FOOT}</div>
   <div class="ov ${menu ? 'on' : ''}" onclick="tog()"></div>
   <nav class="dr ${menu ? 'on' : ''}"><div class="dh"><i class="lo" style="width:46px;height:46px">${logo()}</i><b>${esc(BR.name)}</b></div>
   ${item('home', 'Accueil', 'home')}${item('profile', 'Mon profil', 'user')}${item('honneur', "Page d'honneur", 'star')}${item('rappel', 'Rappel important', 'bell')}${item('annonce', 'Annonces', 'mega')}${item('statuts', 'Statuts', 'doc')}${item('reglement', 'Règlement intérieur', 'doc')}${item('budget', 'État du budget', 'wallet')}${item('situation', 'Situation des membres', 'users')}${item('image', "Images de l'amicale", 'image')}${item('morts', 'À nos morts', 'heart')}
-  ${isAdm() ? item('requests', "Demandes d'inscription", 'inbox') + item('members', 'Membres', 'list') + item('settings', 'Paramètres', 'gear') : ''}
+  ${isAdm() ? `<button class="i ${page === 'requests' ? 'a' : ''}" onclick="go('requests')">${ico('inbox')}Demandes d'inscription<span class="bdg" id="bd-req"></span></button>` + item('members', 'Membres', 'list') + item('settings', 'Paramètres', 'gear') : ''}
   <button class="i" onclick="logout()">${ico('out')}Se déconnecter</button><div class="sp">${FOOT}</div></nav>`;
-  fill();
+  setBadges(); refreshPending(); fill();
 }
 
 async function fill() {
@@ -190,6 +193,7 @@ async function listV(statuses, req) {
   const { data, error } = await SB.from('profiles').select('*').in('status', statuses).order('created_at', { ascending: false });
   if (error) return `<div class="err">${esc(error.message)}</div>`;
   if (!data.length) return `<div class="c s">${req ? 'Aucune demande en attente.' : 'Aucun membre.'}</div>`;
+  MB = {}; data.forEach(p => MB[p.id] = p);
   const rows = data.map(p => {
     const t = RL[p.role] || ST[p.status], who = `<div><div style="font-weight:700">${esc(p.first_name)} ${esc(p.last_name)}</div><div class="s">${esc(p.phone)}</div></div>`;
     let ac = '';
@@ -201,6 +205,10 @@ async function listV(statuses, req) {
     else ac = `<div class="g2">${btn(p.status === 'deleted' ? 'Restaurer' : 'Réactiver', `act('${p.id}','active')`, 'green')}</div>`;
     if (isOwn() && p.id !== me.id && p.role !== 'owner' && ['active', 'disabled'].includes(p.status))
       ac += `<div style="margin-top:12px">${btn('Supprimer', `del('${p.id}')`, 'red')}</div>`;
+    if (isOwn() && p.id !== me.id && p.role !== 'owner' && ['deleted', 'rejected'].includes(p.status))
+      ac += `<div style="margin-top:12px">${btn('Supprimer définitivement', `purge('${p.id}')`, 'red')}</div>`;
+    if (p.role !== 'owner' || isOwn())
+      ac += `<div style="margin-top:12px">${btnS('Modifier le nom', `renameMember('${p.id}')`, 'gray')}</div>`;
     return `<div class="c" data-n="${esc(norm(p.first_name + ' ' + p.last_name + ' ' + p.phone))}"><div class="m">${who}<span class="tag" style="background:${t[1]}">${t[0]}</span></div>${ac}</div>`;
   }).join('');
   return `<div style="font-weight:700;font-size:16px">${req ? data.length + ' demande(s)' : data.length + ' compte(s)'}</div>${req ? '' : searchBox()}${rows}`;
@@ -229,15 +237,18 @@ async function trancheAmt() {
 
 async function homeV() {
   const hr = new Date().getHours(), hello = hr >= 18 || hr < 5 ? 'Bonsoir' : 'Bonjour';
-  const [{ data: n }, { data: sm }, { data: ps }] = await Promise.all([SB.rpc('active_members_count'), SB.rpc('budget_summary'),
-    SB.from('amicale_posts').select('kind,title,body,created_at').in('kind', ['rappel', 'annonce']).order('created_at', { ascending: false }).limit(8)]);
+  const [{ data: n }, { data: sm }, { data: ps }, { count: pend }] = await Promise.all([SB.rpc('active_members_count'), SB.rpc('budget_summary'),
+    SB.from('amicale_posts').select('kind,title,body,created_at').in('kind', ['rappel', 'annonce']).order('created_at', { ascending: false }).limit(8),
+    isAdm() ? SB.from('profiles').select('id', { count: 'exact', head: true }).eq('status', 'pending') : Promise.resolve({ count: 0 })]);
+  if (isAdm()) { PENDING = pend || 0; setBadges(); }
   const b = sm || { entrees: 0, depenses: 0, prev_entrees: 0, prev_depenses: 0 };
   const d = new Date(), pm = new Date(d.getFullYear(), d.getMonth() - 1, 1).toLocaleDateString('fr-FR', { month: 'short' });
   const rap = (ps || []).find(p => p.kind === 'rappel'), ann = (ps || []).filter(p => p.kind === 'annonce').slice(0, 2);
   return `<div style="padding:2px 4px"><div class="s">${d.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}</div><div style="font-size:28px;font-weight:800;letter-spacing:-.5px;margin-top:2px">${hello}, ${esc(me.first_name)}</div></div>
+  ${pend ? btn(ico('inbox') + pend + (pend > 1 ? ' demandes' : ' demande') + " d'inscription en attente", "go('requests')", 'or') : ''}
   <div class="c" style="background:linear-gradient(135deg,#15803d,#166534)"><div style="font-size:13px;color:#d1fae5">Somme globale disponible en caisse</div><div style="font-size:30px;font-weight:800;margin-top:6px">${fcfa((b.opening || 0) + b.entrees - b.depenses)}</div></div>
   <div class="g3">${stat('Membres actifs', n ?? 0, "go('situation')", 'blue')}${stat('Entrées ' + pm, num(b.prev_entrees), "go('budget')", 'green')}${stat('Dépenses ' + pm, num(b.prev_depenses), "go('budget')", 'red')}</div>
-  <div class="q">${btn(ico('wallet') + 'État du budget', "go('budget')", 'blue')}${btn(ico('user') + 'Mon profil', "go('profile')", 'green')}${isAdm() ? btn(ico('users') + 'Situation', "go('situation')", 'teal') + btn(ico('inbox') + 'Demandes', "go('requests')", 'or') : btn(ico('users') + 'Situation des membres', "go('situation')", 'teal').replace('class="b"', 'class="b wide"')}</div>
+  <div class="q">${btn(ico('wallet') + 'État du budget', "go('budget')", 'blue')}${btn(ico('user') + 'Mon profil', "go('profile')", 'green')}${isAdm() ? btn(ico('users') + 'Situation', "go('situation')", 'teal') + btn(ico('inbox') + 'Demandes' + (pend ? ' (' + pend + ')' : ''), "go('requests')", 'or') : btn(ico('users') + 'Situation des membres', "go('situation')", 'teal').replace('class="b"', 'class="b wide"')}</div>
   ${rap ? `<div class="c" style="background:linear-gradient(135deg,#7f1d1d,#451a1a)"><div style="font-weight:800;font-size:13px;color:#fecaca">RAPPEL IMPORTANT</div><div style="font-weight:700;margin-top:6px">${esc(rap.title)}</div><div style="font-size:14px;margin-top:4px;line-height:1.4;white-space:pre-wrap">${esc(rap.body)}</div></div>` : ''}
   ${ann.length ? `<div class="c"><div style="font-weight:700;padding-bottom:4px">Dernières annonces</div>${ann.map(a => `<div class="row"><div><div>${esc(a.title)}</div><div class="s">${dfr(a.created_at.slice(0, 10))}</div></div></div>`).join('')}</div>` : ''}`;
 }
@@ -486,6 +497,35 @@ async function delPost(id) {
   if (i > 0) await SB.storage.from('amicale-docs').remove([decodeURIComponent(u.slice(i + 14))]);
   fill();
 }
+
+
+let MB = {}, PENDING = 0;
+async function renameMember(id) {
+  const p = MB[id]; if (!p) return;
+  const fn = prompt('Prénom', p.first_name); if (fn === null) return;
+  const ln = prompt('Nom (tu peux ajouter un numéro, ex. : Sarr N°1)', p.last_name); if (ln === null) return;
+  if (!fn.trim() || !ln.trim()) { alert('Le prénom et le nom ne peuvent pas être vides.'); return; }
+  const { data, error } = await SB.from('profiles').update({ first_name: fn.trim(), last_name: ln.trim() }).eq('id', id).select();
+  if (error || !data.length) alert(error ? error.message : 'Modification impossible.'); fill();
+}
+async function purge(id) {
+  const p = MB[id], nm = p ? p.first_name + ' ' + p.last_name : 'ce compte';
+  if (!confirm(`Supprimer définitivement ${nm} ?\nSon compte et tout son historique (tranches, événements) disparaîtront. Cette action est irréversible.`)) return;
+  const { error } = await SB.rpc('purge_account', { uid: id });
+  if (error) alert(error.message + ' (le fichier 8-suppression-definitive.sql a-t-il été exécuté ?)'); fill();
+}
+function setBadges() {
+  const b = $('#bd-req'), d = $('#bd-dot');
+  if (b) { b.textContent = PENDING; b.style.display = PENDING ? 'flex' : 'none'; }
+  if (d) d.style.display = PENDING ? 'block' : 'none';
+}
+async function refreshPending() {
+  if (!me || me.status !== 'active' || !isAdm()) return;
+  const { count } = await SB.from('profiles').select('id', { count: 'exact', head: true }).eq('status', 'pending');
+  PENDING = count || 0; setBadges();
+}
+setInterval(refreshPending, 60000);
+document.addEventListener('visibilitychange', () => { if (!document.hidden) refreshPending(); });
 
 SB.auth.onAuthStateChange(() => {});
 boot();
