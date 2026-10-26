@@ -4,6 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#1d1d21">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="A.M.D">
 <title>Amicale Contingents 17</title>
 <style>
 :root{--bg:#0b0d12;--tx:#f3f5fa;--mu:#9aa3b5;--bd:rgba(255,255,255,.08);--ln:rgba(255,255,255,.08)}
@@ -66,8 +72,8 @@ select.f{appearance:auto}
 <script>
 const SB = supabase.createClient('https://fwodbaildriqkmpplutj.supabase.co', 'sb_publishable_yDfRe6HmyHgGVo1AuuosYg_h9LDlWLA');
 const SLOGAN = 'Unis pour construire demain';
-let BR = { name: 'Amicale Projet Contingents 17 Fatick', logo: '' };
-const logo = () => BR.logo ? `<img src="${esc(BR.logo)}" alt="Logo">` : 'Logo';
+let BR = { name: 'A.M.D', logo: 'logo.png' };
+const logo = () => BR.logo ? `<img src="${esc(BR.logo)}" alt="Logo" onerror="this.outerHTML='Logo'">` : 'Logo';
 const FOOT = 'Administrateur et créateur: Julien D. Y. LUKOS';
 const $ = s => document.querySelector(s);
 const esc = t => String(t ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -84,7 +90,7 @@ const ico = n => `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" st
 
 async function loadBrand() {
   const { data } = await SB.from('amicale_settings').select('key,value').in('key', ['amicale_name', 'amicale_logo']);
-  (data || []).forEach(r => { if (r.key === 'amicale_name' && r.value) BR.name = r.value; if (r.key === 'amicale_logo') BR.logo = r.value; });
+  (data || []).forEach(r => { if (r.key === 'amicale_name' && r.value) BR.name = r.value; if (r.key === 'amicale_logo') BR.logo = r.value || 'logo.png'; });
   document.title = BR.name;
 }
 async function boot() {
@@ -483,6 +489,7 @@ async function delPost(id) {
 
 SB.auth.onAuthStateChange(() => {});
 boot();
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
 </script>
 </body>
 </html>
