@@ -148,7 +148,8 @@ const TITRES = { settings: 'Paramètres', home: 'Accueil', profile: 'Mon profil'
 const stat = (l, v, fn, c) => `<button class="b stat" style="--c:${COL[c][0]};--d:${COL[c][1]}" onclick="${fn}"><span>${l}</span><b>${v}</b></button>`;
 Object.assign(IC, { star: 'M12 3l2.8 5.7 6.2.9-4.5 4.4 1 6.2L12 17.3 6.5 20.2l1-6.2L3 9.6l6.2-.9z', bell: 'M6 8a6 6 0 0112 0c0 7 3 9 3 9H3s3-2 3-9M10 21a2 2 0 004 0', doc: 'M7 3h8l4 4v14H7zM15 3v4h4M10 12h6M10 16h6', image: 'M4 5h16v14H4zM4 15l5-5 4 4 3-3 4 4M9 9h.01', cal: 'M4 6h16v14H4zM4 10h16M8 3v4M16 3v4', heart: 'M12 21s-8-5-8-11a4.5 4.5 0 018-2.8A4.5 4.5 0 0120 10c0 6-8 11-8 11z', mega: 'M3 11v3h4l8 5V6L7 11zM18 9a4 4 0 010 6' });
 const PK = { honneur: { t: "Page d'honneur", ex: 'Titre ou année', thumb: 1 }, rappel: { t: 'Rappel important' }, annonce: { t: 'Annonces' }, statuts: { t: 'Statuts', pdf: 1 }, reglement: { t: 'Règlement intérieur', pdf: 1 }, image: { t: "Images de l'amicale", noTitle: 1 }, morts: { t: 'À nos morts', ex: 'Naissance – Décès', thumb: 1 } };
-Object.keys(PK).forEach(k => TITRES[k] = PK[k].t); TITRES.event = 'Situation du membre';
+Object.keys(PK).forEach(k => TITRES[k] = PK[k].t); TITRES.event = 'Situation du membre'; TITRES.global = 'Situation globale';
+IC.chart = 'M4 20V10M10 20V4M16 20v-7M22 20H2';
 const EVL = { fiancailles: 'Fiançailles', mariage: 'Mariage', circoncision: 'Circoncision', communion: 'Communion', bapteme: 'Baptême', deces: 'Décès' };
 const REL = { pere: 'Père', mere: 'Mère', enfant: 'Enfant', conjoint: 'Conjoint(e)', frere: 'Frère', soeur: 'Sœur' };
 function go(p) { page = p; menu = false; render(); }
@@ -167,7 +168,7 @@ function render() {
   <main id="c" class="pg"><div class="s">Chargement…</div></main><div class="ft">${FOOT}</div>
   <div class="ov ${menu ? 'on' : ''}" onclick="tog()"></div>
   <nav class="dr ${menu ? 'on' : ''}"><div class="dh"><i class="lo" style="width:46px;height:46px">${logo()}</i><b>${esc(BR.name)}</b></div>
-  ${item('home', 'Accueil', 'home')}${item('profile', 'Mon profil', 'user')}${item('honneur', "Page d'honneur", 'star')}${item('rappel', 'Rappel important', 'bell')}${item('annonce', 'Annonces', 'mega')}${item('statuts', 'Statuts', 'doc')}${item('reglement', 'Règlement intérieur', 'doc')}${item('budget', 'État du budget', 'wallet')}${item('situation', 'Situation des membres', 'users')}${item('image', "Images de l'amicale", 'image')}${item('morts', 'À nos morts', 'heart')}
+  ${item('home', 'Accueil', 'home')}${item('profile', 'Mon profil', 'user')}${item('honneur', "Page d'honneur", 'star')}${item('rappel', 'Rappel important', 'bell')}${item('annonce', 'Annonces', 'mega')}${item('statuts', 'Statuts', 'doc')}${item('reglement', 'Règlement intérieur', 'doc')}${item('budget', 'État du budget', 'wallet')}${item('situation', 'Situation des membres', 'users')}${item('global', 'Situation globale', 'chart')}${item('image', "Images de l'amicale", 'image')}${item('morts', 'À nos morts', 'heart')}
   ${isAdm() ? `<button class="i ${page === 'requests' ? 'a' : ''}" onclick="go('requests')">${ico('inbox')}Demandes d'inscription<span class="bdg" id="bd-req"></span></button>` + item('members', 'Membres', 'list') + item('settings', 'Paramètres', 'gear') : ''}
   <button class="i" onclick="logout()">${ico('out')}Se déconnecter</button><div class="sp">${FOOT}</div></nav>`;
   setBadges(); refreshPending(); fill();
@@ -181,6 +182,7 @@ async function fill() {
   else if (page === 'budget') h = await budgetV();
   else if (page === 'situation') h = await situationV();
   else if (page === 'event') h = await eventV();
+  else if (page === 'global') h = await globalV();
   else if (PK[page]) h = await postsV(page);
   else if (page === 'requests') h = await listV(['pending', 'rejected'], true);
   else h = await listV(['active', 'disabled', 'deleted'], false);
@@ -248,7 +250,7 @@ async function homeV() {
   ${pend ? btn(ico('inbox') + pend + (pend > 1 ? ' demandes' : ' demande') + " d'inscription en attente", "go('requests')", 'or') : ''}
   <div class="c" style="background:linear-gradient(135deg,#15803d,#166534)"><div style="font-size:13px;color:#d1fae5">Somme globale disponible en caisse</div><div style="font-size:30px;font-weight:800;margin-top:6px">${fcfa((b.opening || 0) + b.entrees - b.depenses)}</div></div>
   <div class="g3">${stat('Membres actifs', n ?? 0, "go('situation')", 'blue')}${stat('Entrées ' + pm, num(b.prev_entrees), "go('budget')", 'green')}${stat('Dépenses ' + pm, num(b.prev_depenses), "go('budget')", 'red')}</div>
-  <div class="q">${btn(ico('wallet') + 'État du budget', "go('budget')", 'blue')}${btn(ico('user') + 'Mon profil', "go('profile')", 'green')}${isAdm() ? btn(ico('users') + 'Situation', "go('situation')", 'teal') + btn(ico('inbox') + 'Demandes' + (pend ? ' (' + pend + ')' : ''), "go('requests')", 'or') : btn(ico('users') + 'Situation des membres', "go('situation')", 'teal').replace('class="b"', 'class="b wide"')}</div>
+  <div class="q">${btn(ico('wallet') + 'État du budget', "go('budget')", 'blue')}${btn(ico('user') + 'Mon profil', "go('profile')", 'green')}${isAdm() ? btn(ico('users') + 'Situation', "go('situation')", 'teal') + btn(ico('inbox') + 'Demandes' + (pend ? ' (' + pend + ')' : ''), "go('requests')", 'or') + btn(ico('chart') + 'Situation globale', "go('global')", 'vio').replace('class="b"', 'class="b wide"') : btn(ico('users') + 'Situation', "go('situation')", 'teal') + btn(ico('chart') + 'Situation globale', "go('global')", 'vio')}</div>
   ${rap ? `<div class="c" style="background:linear-gradient(135deg,#7f1d1d,#451a1a)"><div style="font-weight:800;font-size:13px;color:#fecaca">RAPPEL IMPORTANT</div><div style="font-weight:700;margin-top:6px">${esc(rap.title)}</div><div style="font-size:14px;margin-top:4px;line-height:1.4;white-space:pre-wrap">${esc(rap.body)}</div></div>` : ''}
   ${ann.length ? `<div class="c"><div style="font-weight:700;padding-bottom:4px">Dernières annonces</div>${ann.map(a => `<div class="row"><div><div>${esc(a.title)}</div><div class="s">${dfr(a.created_at.slice(0, 10))}</div></div></div>`).join('')}</div>` : ''}`;
 }
@@ -359,6 +361,32 @@ async function saveAmt(e) {
   alert(error ? error.message : 'Montant enregistré.'); fill();
 }
 
+
+async function globalV() {
+  const [amt, { data, error }] = await Promise.all([trancheAmt(), SB.rpc('members_overview', { y: YEAR })]);
+  if (error) return `<div class="err">${esc(error.message)}</div>`;
+  const L = data || [], n = L.length;
+  const cnt = f => L.filter(f).length, tot = k => L.reduce((s, p) => s + Number(p[k] || 0), 0);
+  const t1 = cnt(p => p.t1), t2 = cnt(p => p.t2), both = cnt(p => p.t1 && p.t2);
+  const ma = cnt(p => p.groupe === 'mariage'), ci = cnt(p => p.groupe === 'circoncision'), co = cnt(p => p.groupe === 'communion');
+  const fi = tot('fiancailles'), ba = tot('baptemes'), de = tot('deces');
+  const pc = v => n ? Math.round(v * 100 / n) : 0;
+  const tile = (lab, val, sub, c1, c2, bar) => `<div class="c" style="background:linear-gradient(135deg,${c1},${c2});box-shadow:0 6px 0 ${c2},0 14px 24px rgba(0,0,0,.35);margin-bottom:6px">
+    <div style="font-size:13px;font-weight:700;opacity:.9">${lab}</div><div style="font-size:30px;font-weight:800;margin-top:4px">${val}</div>
+    ${bar != null ? `<div style="height:10px;border-radius:6px;background:rgba(0,0,0,.25);margin-top:8px;overflow:hidden"><div style="width:${bar}%;height:100%;background:rgba(255,255,255,.85)"></div></div>` : ''}
+    <div style="font-size:12px;opacity:.85;margin-top:6px">${sub}</div></div>`;
+  return `<div class="c" style="background:linear-gradient(135deg,#4c1d95,#7c3aed)"><div style="font-size:13px;color:#ede9fe">Situation globale ${YEAR}</div>
+    <div style="font-size:30px;font-weight:800;margin-top:6px">${n} membre${n > 1 ? 's' : ''} actif${n > 1 ? 's' : ''}</div>
+    <div style="font-size:12px;color:#ede9fe;margin-top:4px">Tranche : ${fcfa(amt)} · ${both} membre${both > 1 ? 's' : ''} à jour des deux tranches</div></div>
+  <div style="font-weight:700;font-size:16px;margin-top:4px">Cotisations ${YEAR}</div>
+  <div class="q">${tile('Tranche 1 payée', `${t1}/${n}`, `${pc(t1)} % · ${fcfa(t1 * amt)}`, '#15803d', '#14532d', pc(t1))}${tile('Tranche 2 payée', `${t2}/${n}`, `${pc(t2)} % · ${fcfa(t2 * amt)}`, '#0f766e', '#134e4a', pc(t2))}</div>
+  <div class="s" style="text-align:center">Total des tranches validées : ${t1 + t2} · ${fcfa((t1 + t2) * amt)}</div>
+  <div style="font-weight:700;font-size:16px;margin-top:4px">Événements</div>
+  ${tile('Mariage, circoncision, communion', ma + ci + co, `Mariages : ${ma} · Circoncisions : ${ci} · Communions : ${co}`, '#2563eb', '#1e3a8a')}
+  <div class="q">${tile('Fiançailles', fi, 'au total', '#c2410c', '#7c2d12')}${tile('Baptêmes', ba, 'au total', '#7c3aed', '#4c1d95')}</div>
+  ${tile('Décès', de, 'Parents proches : père, mère, enfant, conjoint(e), frère, sœur', '#4b5563', '#1f2937')}
+  <div class="s" style="text-align:center">Les chiffres sont calculés comme dans « Situation des membres » et se mettent à jour à chaque visite.</div>`;
+}
 
 let NEWLOGO = null;
 async function settingsV() {
