@@ -150,7 +150,7 @@ Object.assign(IC, { star: 'M12 3l2.8 5.7 6.2.9-4.5 4.4 1 6.2L12 17.3 6.5 20.2l1-
 const PK = { honneur: { t: "Page d'honneur", ex: 'Titre ou année', thumb: 1 }, rappel: { t: 'Rappel important' }, annonce: { t: 'Annonces' }, statuts: { t: 'Statuts', pdf: 1 }, reglement: { t: 'Règlement intérieur', pdf: 1 }, image: { t: "Images de l'amicale", noTitle: 1 }, morts: { t: 'À nos morts', ex: 'Naissance – Décès', thumb: 1 } };
 Object.keys(PK).forEach(k => TITRES[k] = PK[k].t); TITRES.event = 'Situation du membre';
 const EVL = { fiancailles: 'Fiançailles', mariage: 'Mariage', circoncision: 'Circoncision', communion: 'Communion', bapteme: 'Baptême', deces: 'Décès' };
-const REL = { pere: 'Père', mere: 'Mère', enfant: 'Enfant', conjoint: 'Conjoint(e)' };
+const REL = { pere: 'Père', mere: 'Mère', enfant: 'Enfant', conjoint: 'Conjoint(e)', frere: 'Frère', soeur: 'Sœur' };
 function go(p) { page = p; menu = false; render(); }
 function tog() { menu = !menu; $('.dr').classList.toggle('on', menu); $('.ov').classList.toggle('on', menu); }
 function item(p, t, ic) { return `<button class="i ${page === p ? 'a' : ''}" onclick="go('${p}')">${ico(ic)}${t}</button>`; }
@@ -273,7 +273,7 @@ async function profileV() {
   ${er('Fiançailles', 'Limite : 1', o.fiancailles + '/1', fi ? X : G)}
   ${er('Mariage, circoncision ou communion', o.groupe ? EVL[o.groupe] + ' célébré' : 'Un seul des trois · limite 1', (o.groupe ? 1 : 0) + '/1', o.groupe ? X : G)}
   ${er('Baptêmes', `${o.baptemes} reçu(s) sur 4 · il te reste ${4 - o.baptemes}`, o.baptemes + '/4', o.baptemes >= 4 ? X : G)}
-  ${er('Décès', o.deces ? 'Parent de premier degré : ' + (evs || []).map(e => REL[e.relative]).join(', ') : 'Parent de premier degré uniquement', o.deces + ' reçu(s)', o.deces ? '#b45309' : X)}</div>`;
+  ${er('Décès', o.deces ? 'Parent : ' + (evs || []).map(e => REL[e.relative] || e.relative).join(', ') : 'Père, mère, enfant, conjoint(e), frère ou sœur', o.deces + ' reçu(s)', o.deces ? '#b45309' : X)}</div>`;
 }
 
 let BM = null;
@@ -295,7 +295,7 @@ async function budgetV() {
   const total = (g.opening || 0) + g.entrees - g.depenses, fin = k.report + k.entrees - k.depenses;
   const cur = BM.y === now.getFullYear() && BM.m === now.getMonth() + 1;
   const rows = (list || []).map(m => `<div class="row"><div style="min-width:0"><div>${esc(m.description)}</div><div class="s">${m.kind === 'entree' ? 'Entrée' : 'Dépense'} · ${dfr(m.op_date)}</div></div>
-    <div style="text-align:right;white-space:nowrap"><b style="color:${m.kind === 'entree' ? '#4ade80' : '#f87171'}">${m.kind === 'entree' ? '+' : '−'} ${num(m.amount)}</b>${isOwn() ? `<div style="margin-top:6px">${btnS('Supprimer', `delMov(${m.id})`, 'red')}</div>` : ''}</div></div>`).join('');
+    <div style="text-align:right;white-space:nowrap"><b style="color:${m.kind === 'entree' ? '#4ade80' : '#f87171'}">${m.kind === 'entree' ? '+' : '−'} ${num(m.amount)}</b>${isAdm() ? `<div style="margin-top:6px">${btnS('Supprimer', `delMov(${m.id})`, 'red')}</div>` : ''}</div></div>`).join('');
   const form = isAdm() ? `<form class="c" onsubmit="addMov(event)"><div style="font-weight:700">Ajouter un mouvement</div>
     <select class="f" name="kind" aria-label="Type"><option value="entree">Entrée d'argent</option><option value="depense">Dépense</option></select>
     <input class="f" name="amount" type="number" min="1" step="1" inputmode="numeric" placeholder="Montant (FCFA)" required>
@@ -328,8 +328,9 @@ async function addMov(e) {
 }
 async function delMov(id) {
   if (!confirm('Supprimer ce mouvement ? Le solde sera recalculé.')) return;
-  const { error } = await SB.from('amicale_movements').delete().eq('id', id);
-  if (error) alert(error.message); fill();
+  const { data, error } = await SB.from('amicale_movements').delete().eq('id', id).select();
+  if (error || !data.length) alert(error ? error.message : "Suppression refusée : exécute d'abord le fichier 9-freres-soeurs-et-suppression.sql dans Supabase.");
+  fill();
 }
 
 let SIT = {};
@@ -412,8 +413,8 @@ async function eventV() {
   <form class="c" onsubmit="addEvent(event)" style="padding-top:8px"><div style="font-weight:700;padding:8px 0">Ajouter un événement</div>
   ${opt('fiancailles', 'Fiançailles', p.fiancailles >= 1, p.fiancailles >= 1 ? '1/1 · limite atteinte' : '0/1')}
   ${opt('mariage', 'Mariage', gOff, gN)}${opt('circoncision', 'Circoncision', gOff, gN)}${opt('communion', 'Communion', gOff, gN)}
-  ${opt('bapteme', 'Baptême', p.baptemes >= 4, p.baptemes + '/4')}${opt('deces', 'Décès (parent 1er degré)', false, p.deces + ' reçu(s)')}
-  <select class="f" id="rel" name="rel" aria-label="Parent concerné" style="display:none"><option value="pere">Père</option><option value="mere">Mère</option><option value="enfant">Enfant</option><option value="conjoint">Conjoint(e)</option></select>
+  ${opt('bapteme', 'Baptême', p.baptemes >= 4, p.baptemes + '/4')}${opt('deces', 'Décès (parent proche)', false, p.deces + ' reçu(s)')}
+  <select class="f" id="rel" name="rel" aria-label="Parent concerné" style="display:none"><option value="pere">Père</option><option value="mere">Mère</option><option value="enfant">Enfant</option><option value="conjoint">Conjoint(e)</option><option value="frere">Frère</option><option value="soeur">Sœur</option></select>
   <label class="s" style="display:block;margin-top:12px">Date<input class="f" name="date" type="date" value="${today()}" required></label>
   <button class="b" style="width:100%;margin-top:16px;--c:#15803d;--d:#14532d">Enregistrer l'événement</button></form>
   <div class="s" style="text-align:center">Mariage, circoncision et communion : un seul des trois par membre.</div>`;
