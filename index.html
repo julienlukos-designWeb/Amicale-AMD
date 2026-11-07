@@ -666,7 +666,7 @@ function pushPaint() {
   }
 }
 // En ouvrant A.M.D, la pastille de l'icône est remise à zéro (les notifications restent dans le volet du téléphone)
-const pastilleZero = () => { try { if (navigator.clearAppBadge) navigator.clearAppBadge(); } catch (_) {} };
+const pastilleZero = () => { try { if (navigator.clearAppBadge) navigator.clearAppBadge(); if (window.caches) caches.open('amd-badge').then(c => c.put('n', new Response('0'))); } catch (_) {} };
 pastilleZero(); document.addEventListener('visibilitychange', () => { if (!document.hidden) pastilleZero(); });
 if ('serviceWorker' in navigator) navigator.serviceWorker.addEventListener('message', e => { if (e.data && e.data.amdGoto && me && TITRES[e.data.amdGoto]) go(e.data.amdGoto); });
 

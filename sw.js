@@ -1,10 +1,10 @@
 // A.M.D — service worker minimal : l'application reste installable et s'ouvre même si le réseau est lent.
 // Réseau d'abord : les données et mises à jour sont toujours récentes ; le cache ne sert qu'en secours.
 // + Notifications : affiche les messages envoyés par les administrateurs, même application fermée.
-const CACHE = 'amd-v3';
+const CACHE = 'amd-v4', BADGE = 'amd-badge';
 self.addEventListener('install', e => { self.skipWaiting(); });
 self.addEventListener('activate', e => {
-  e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim()));
+  e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== CACHE && k !== BADGE).map(k => caches.delete(k)))).then(() => self.clients.claim()));
 });
 self.addEventListener('fetch', e => {
   const r = e.request, u = new URL(r.url);
@@ -15,10 +15,19 @@ self.addEventListener('fetch', e => {
 });
 
 // ---------- Notifications ----------
-// Pastille avec le nombre de notifications sur l'icône A.M.D (là où le téléphone le permet)
-async function majPastille() {
+// Pastille rouge avec le nombre de notifications non lues sur l'icône A.M.D (iPhone, ordinateur…)
+// Le compteur est gardé dans un petit cache ; il revient à zéro quand le membre ouvre A.M.D.
+async function compteur(delta) {
+  const c = await caches.open(BADGE);
+  const r = await c.match('n');
+  let n = r ? (parseInt(await r.text(), 10) || 0) : 0;
+  n = Math.max(0, n + delta);
+  await c.put('n', new Response(String(n)));
+  return n;
+}
+async function majPastille(delta) {
   try {
-    const n = (await self.registration.getNotifications()).length;
+    const n = await compteur(delta);
     if (self.navigator.setAppBadge) n ? await self.navigator.setAppBadge(n) : await self.navigator.clearAppBadge();
   } catch (_) {}
 }
@@ -35,13 +44,12 @@ self.addEventListener('push', e => {
     requireInteraction: true,    // reste affichée jusqu'à ce que le membre la touche
     vibrate: [250, 120, 250, 120, 400],
     data: { url }
-  }).then(majPastille));
+  }).then(() => majPastille(1)));
 });
-self.addEventListener('notificationclose', e => { e.waitUntil(majPastille()); });
 
 self.addEventListener('notificationclick', e => {
   e.notification.close();
-  majPastille();
+  majPastille(-1);
   const url = (e.notification.data && e.notification.data.url) || self.registration.scope;
   const p = new URL(url).searchParams.get('p');
   e.waitUntil(self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(list => {
