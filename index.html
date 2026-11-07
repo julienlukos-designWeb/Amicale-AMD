@@ -175,7 +175,7 @@ async function signup(e) {
   if (error) { msg = /registered|already/i.test(error.message) ? 'Ce numéro est déjà inscrit.' : error.message; return render(); }
   msg = ''; boot();
 }
-async function logout() { if (PUSH.sub) await SB.rpc('amd_push_retirer', { p_endpoint: PUSH.sub.endpoint }).catch(() => {}); PUSH.sub = null; await SB.auth.signOut(); me = null; menu = false; page = 'home'; tab = 'in'; render(); }
+async function logout() { if (PUSH.sub) await SB.rpc('amd_push_retirer', { p_endpoint: PUSH.sub.endpoint }).catch(() => {}); PUSH.sub = null; await SB.auth.signOut({ scope: 'local' }); /* déconnecte seulement CE téléphone */ me = null; menu = false; page = 'home'; tab = 'in'; render(); }
 
 function stateView(icon, titre, texte) {
   return `<div class="ctr"><div class="big">${logo()}</div><div style="font-weight:800;font-size:17px">${esc(BR.name)}</div>
