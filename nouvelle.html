@@ -1,0 +1,909 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1d1d21">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="A.M.D">
+<title>Amicale Contingents 17</title>
+<style>
+:root{--bg:#0b0d12;--tx:#f3f5fa;--mu:#9aa3b5;--bd:rgba(255,255,255,.08);--ln:rgba(255,255,255,.08)}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;color:var(--tx);font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-text-size-adjust:100%;min-height:100vh;background:radial-gradient(800px 480px at 0% -8%,rgba(37,99,235,.28),transparent 60%),radial-gradient(700px 420px at 100% 0%,rgba(21,128,61,.22),transparent 60%),var(--bg);background-attachment:fixed}
+button,input,select,textarea{font-family:inherit}
+.top{position:sticky;top:0;z-index:5;height:64px;display:flex;align-items:center;gap:10px;padding:0 10px;background:rgba(14,17,24,.72);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-bottom:1px solid var(--bd)}
+.ic{width:44px;height:44px;border:0;background:rgba(255,255,255,.07);border-radius:14px;color:#fff;display:flex;align-items:center;justify-content:center;flex:none}
+.lg{display:flex;align-items:center;gap:10px;min-width:0}
+.lg>div{min-width:0}.lg b{display:block;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.lg span{display:block;font-size:11px;color:var(--mu)}
+.ic{position:relative}
+.bdg{margin-left:auto;background:#ef4444;color:#fff;border-radius:999px;min-width:22px;height:22px;padding:0 7px;font-size:12px;font-weight:700;display:none;align-items:center;justify-content:center}
+.dot{position:absolute;top:7px;right:7px;width:12px;height:12px;border-radius:50%;background:#ef4444;border:2px solid #14171f;display:none}
+.lo{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#facc15,#c2410c);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;color:#1c1917;font-style:normal;flex:none;overflow:hidden;box-shadow:0 0 0 2px rgba(255,255,255,.18)}
+.lo img,.big img{width:100%;height:100%;object-fit:cover}
+.pg{max-width:560px;margin:0 auto;padding:18px 16px 8px;display:flex;flex-direction:column;gap:14px}
+.pg>*{animation:up .4s ease both}
+@keyframes up{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.c{border-radius:20px;padding:16px 18px;background:linear-gradient(160deg,#1b2130,#141822);border:1px solid var(--bd);box-shadow:0 10px 28px rgba(0,0,0,.35)}
+.s{font-size:12px;color:var(--mu)}
+.m{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.tag{border-radius:999px;padding:5px 11px;font-size:11px;font-weight:700;color:#fff;white-space:nowrap}
+.b{--c:#2563eb;--d:#1e3a8a;display:flex;align-items:center;justify-content:center;gap:9px;border:0;border-radius:15px;color:#fff;font-weight:700;font-size:15px;letter-spacing:.2px;min-height:54px;padding:0 16px;margin-bottom:6px;text-shadow:0 1px 0 rgba(0,0,0,.28);
+ background:linear-gradient(180deg,rgba(255,255,255,.26),rgba(255,255,255,0) 55%),var(--c);
+ box-shadow:0 6px 0 var(--d),0 14px 20px rgba(0,0,0,.38),inset 0 1px 0 rgba(255,255,255,.4);transition:transform .08s,box-shadow .08s}
+.b:active{transform:translateY(5px);box-shadow:0 1px 0 var(--d),0 4px 8px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.25)}
+.sm{min-height:42px!important;font-size:13px!important;padding:0 12px!important}
+.wide{grid-column:1/-1}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:12px}
+.q{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.st{padding:13px 14px}.st b{display:block;font-size:17px;margin-top:6px}
+.f{width:100%;border:1px solid rgba(255,255,255,.13);border-radius:12px;background:#0f131b;color:var(--tx);font-size:15px;padding:12px 14px;min-height:48px;margin-top:6px}
+.f:focus{outline:2px solid #3b82f6;outline-offset:1px}
+select.f{appearance:auto}
+.tabs{display:flex;gap:6px;background:rgba(255,255,255,.06);border-radius:14px;padding:5px}
+.tabs button{flex:1;min-height:44px;border:0;border-radius:10px;font-weight:700;font-size:13px;background:none;color:var(--mu)}
+.tabs button.on{background:#2563eb;color:#fff;box-shadow:0 4px 12px rgba(37,99,235,.45)}
+.row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid var(--bd);font-size:14px}.row:last-child{border:0}
+.ft{text-align:center;font-size:11px;color:var(--mu);padding:16px 16px 26px}
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(3px);opacity:0;pointer-events:none;transition:opacity .2s;z-index:8}
+.ov.on{opacity:1;pointer-events:auto}
+.dr{position:fixed;top:0;bottom:0;left:0;width:290px;max-width:86%;background:#11141c;border-right:1px solid var(--bd);z-index:9;transform:translateX(-102%);transition:transform .22s ease;display:flex;flex-direction:column;padding:14px 0;box-shadow:10px 0 40px rgba(0,0,0,.6);overflow-y:auto}
+.dr.on{transform:none}
+.dh{display:flex;align-items:center;gap:12px;padding:6px 18px 16px;margin-bottom:6px;border-bottom:1px solid var(--bd)}
+.dh b{font-size:14px;line-height:1.3}
+.dr .i{height:46px;display:flex;align-items:center;gap:14px;margin:2px 10px;padding:0 14px;border:0;border-radius:12px;background:none;color:#d6dbe6;font-size:14px;text-align:left;width:calc(100% - 20px)}
+.dr .i.a{background:linear-gradient(90deg,rgba(37,99,235,.38),rgba(37,99,235,.06));color:#fff;font-weight:700}
+.dr .sp{margin-top:auto;padding:12px 20px 0;font-size:11px;color:var(--mu)}
+.ctr{min-height:100vh;display:flex;flex-direction:column;justify-content:center;gap:14px;max-width:420px;margin:0 auto;padding:28px 20px;text-align:center}
+.big{width:96px;height:96px;margin:0 auto;border-radius:50%;overflow:hidden;background:linear-gradient(135deg,#facc15,#c2410c);display:flex;align-items:center;justify-content:center;font-weight:800;color:#1c1917;box-shadow:0 0 0 4px rgba(255,255,255,.12),0 14px 30px rgba(0,0,0,.4)}
+.gate{position:fixed;inset:0;z-index:60;overflow:auto;background:radial-gradient(800px 480px at 0% -8%,rgba(37,99,235,.28),transparent 60%),var(--bg)}
+.gate .ctr{min-height:100%}.gate .c{text-align:left}
+.nf{background:linear-gradient(135deg,#1e3a8a,#312e81);border-color:rgba(147,197,253,.25)}
+.nf .nt{display:flex;gap:10px;align-items:flex-start}.nf .nt i{font-style:normal;font-size:22px;line-height:1.1}
+.nf .nb{font-size:14px;line-height:1.5;margin-top:6px;white-space:pre-wrap;color:#e0e7ff}
+.nf .g2{margin-top:12px}.nf .b{margin-bottom:0}
+.hd{position:sticky;top:0;z-index:5;height:64px;display:flex;align-items:center;gap:10px;padding:0 12px;background:rgba(14,17,24,.86);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-bottom:1px solid var(--bd)}
+.hd .lg{flex:1}
+.pg{padding-bottom:110px}
+.bn{position:fixed;left:0;right:0;bottom:0;z-index:6;display:grid;gap:4px;padding:8px 8px calc(12px + env(safe-area-inset-bottom));background:rgba(14,17,24,.94);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-top:1px solid var(--bd)}
+.bn button{position:relative;border:0;background:none;border-radius:14px;min-height:56px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:#8b94a7;font-size:10.5px;font-weight:600;white-space:nowrap;padding:0}
+.bn button.on{color:#1c1917;font-weight:800;background:linear-gradient(180deg,rgba(255,255,255,.3),rgba(255,255,255,0) 60%),#facc15;box-shadow:0 4px 0 #a16207,inset 0 1px 0 rgba(255,255,255,.5)}
+.bn .bdg{position:absolute;top:2px;right:8px;margin:0;min-width:20px;height:20px;font-size:11px}
+.bn-in{max-width:560px;margin:0 auto;display:grid;gap:4px}
+.k3{--c:#2563eb;--d:#1e3a8a;border:0;color:#fff;background:linear-gradient(160deg,rgba(255,255,255,.18),rgba(255,255,255,0) 50%),var(--c);box-shadow:0 7px 0 var(--d),0 16px 24px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.35);margin-bottom:6px;text-align:left;font:inherit;width:100%}
+button.k3{cursor:pointer;transition:transform .08s,box-shadow .08s}button.k3:active{transform:translateY(5px);box-shadow:0 2px 0 var(--d),0 5px 10px rgba(0,0,0,.4)}
+.k3 .s{color:rgba(255,255,255,.85)}
+.tl{--c:#2563eb;--d:#1e3a8a;position:relative;display:flex;flex-direction:column;gap:10px;min-height:118px;padding:14px;border-radius:18px;border:0;color:#fff;text-align:left;font:inherit;cursor:pointer;margin-bottom:6px;
+  background:linear-gradient(160deg,rgba(255,255,255,.2),rgba(255,255,255,0) 50%),var(--c);box-shadow:0 7px 0 var(--d),0 14px 22px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.35);transition:transform .08s,box-shadow .08s}
+.tl:active{transform:translateY(5px);box-shadow:0 2px 0 var(--d),0 5px 10px rgba(0,0,0,.4)}
+.tl b{font-size:15px}.tl small{font-size:12px;color:rgba(255,255,255,.88);line-height:1.4}
+.tl .ti{width:38px;height:38px;border-radius:11px;background:rgba(255,255,255,.2);display:grid;place-items:center}
+.tl .tb{position:absolute;top:10px;right:10px;min-width:24px;height:24px;padding:0 6px;border-radius:12px;background:#dc2626;color:#fff;font-size:12px;font-weight:800;display:grid;place-items:center;box-shadow:0 0 0 2px #fff}
+.seg2{display:grid;grid-template-columns:1fr 1fr;gap:6px;background:rgba(255,255,255,.06);border-radius:14px;padding:5px}
+.seg2 button{min-height:44px;border:0;border-radius:10px;font-weight:700;font-size:13px;background:none;color:var(--mu)}
+.seg2 button.on{background:#facc15;color:#1c1917;box-shadow:0 3px 0 #a16207}
+.lnk{border:0;background:none;color:#facc15;font-weight:700;font-size:14px;padding:0;cursor:pointer;text-align:left}
+.bar{height:12px;border-radius:6px;background:rgba(0,0,0,.3);overflow:hidden}.bar i{display:block;height:100%;background:#86efac}
+.pbx{display:flex;flex-direction:column;gap:10px}.pbx .b{margin-bottom:0}
+.pst{display:flex;gap:12px;align-items:flex-start}.pst i{font-style:normal;font-size:26px;line-height:1}
+.chk{display:flex;align-items:center;gap:10px;margin-top:12px;font-size:14px;cursor:pointer}.chk input{width:20px;height:20px;accent-color:#facc15;flex:none}
+.mlist{max-height:340px;overflow:auto;margin-top:10px;border:1px solid var(--bd);border-radius:14px}
+.mlist label{display:flex;align-items:center;gap:10px;padding:10px 12px;border-bottom:1px solid var(--ln);font-size:14px;cursor:pointer}
+.mlist label:last-child{border-bottom:0}.mlist input{width:20px;height:20px;accent-color:#2563eb;flex:none}
+.ok{background:#14532d;color:#bbf7d0;border-radius:12px;padding:10px 12px;font-size:13px}
+.err{background:#7f1d1d;color:#fecaca;border-radius:12px;padding:10px 12px;font-size:13px}
+.left{text-align:left}
+.opt{display:flex;align-items:center;gap:12px;min-height:50px;padding:6px 0;border-bottom:1px solid var(--bd);font-size:14px}
+.opt input{width:22px;height:22px;accent-color:#22c55e;flex:none}.opt em{margin-left:auto;font-size:12px;color:var(--mu);font-style:normal;text-align:right}.opt.off{opacity:.45}
+.stat{flex-direction:column;gap:3px;min-height:86px;padding:10px 6px;font-weight:600;text-align:center}.stat span{font-size:11px;opacity:.92}.stat b{font-size:19px}
+.ph{width:84px;height:104px;border-radius:14px;object-fit:cover;background:#2a2f3d;flex:none;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--mu)}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script>
+const SB = supabase.createClient('https://fwodbaildriqkmpplutj.supabase.co', 'sb_publishable_yDfRe6HmyHgGVo1AuuosYg_h9LDlWLA');
+const SLOGAN = 'Foula - Fiit - Fayda';
+let BR = { name: 'A.M.D', logo: 'logo.png' };
+const logo = () => BR.logo ? `<img src="${esc(BR.logo)}" alt="Logo" onerror="this.outerHTML='Logo'">` : 'Logo';
+const FOOT = 'Administrateur et créateur: Julien D. Y. LUKOS';
+const $ = s => document.querySelector(s);
+const esc = t => String(t ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const digits = p => String(p).replace(/\D/g, '');
+const mail = p => digits(p) + '@amicale-c17.com';
+let me = null, page = 'home', menu = false, tab = 'in', msg = '';
+const isAdm = () => me && ['admin', 'owner'].includes(me.role);
+const isOwn = () => me && me.role === 'owner';
+const BURGER = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg>';
+const COL = {teal:['#0f766e','#134e4a'], blue:['#2563eb','#1e3a8a'], green:['#15803d','#14532d'], red:['#b91c1c','#7f1d1d'], gray:['#4b5563','#1f2937'], vio:['#7c3aed','#4c1d95'], or:['#c2410c','#7c2d12']};
+const btn = (t, fn, c) => `<button class="b" style="--c:${COL[c][0]};--d:${COL[c][1]}" onclick="${fn}">${t}</button>`;
+const IC = { home: 'M3 11l9-8 9 8v10a1 1 0 01-1 1h-5v-6H9v6H4a1 1 0 01-1-1z', user: 'M12 12a4 4 0 100-8 4 4 0 000 8zM4 21a8 8 0 0116 0', wallet: 'M3 7h16a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2zM3 7l2-3h12M16 14h2', users: 'M9 11a3.5 3.5 0 100-7 3.5 3.5 0 000 7zM2 20a7 7 0 0114 0M17 4a3.5 3.5 0 010 7M22 20a7 7 0 00-4-6', inbox: 'M4 13l2-8h12l2 8M4 13v6h16v-6M4 13h5l1 2h4l1-2h5', list: 'M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01', gear: 'M12 15a3 3 0 100-6 3 3 0 000 6zM12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2', out: 'M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9' };
+const ico = n => `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${IC[n]}"/></svg>`;
+
+async function loadBrand() {
+  const { data } = await SB.from('amicale_settings').select('key,value').in('key', ['amicale_name', 'amicale_logo', 'notif_obligatoire']);
+  (data || []).forEach(r => { if (r.key === 'amicale_name' && r.value) BR.name = r.value; if (r.key === 'amicale_logo') BR.logo = r.value || 'logo.png'; if (r.key === 'notif_obligatoire') BR.notifOblig = r.value === 'oui'; });
+  document.title = BR.name;
+}
+async function boot() {
+  await loadBrand();
+  const { data: { session } } = await SB.auth.getSession();
+  me = null;
+  if (session) {
+    const { data } = await SB.from('profiles').select('*').eq('id', session.user.id).maybeSingle();
+    me = data;
+    if (!me) { await SB.auth.signOut(); msg = 'Compte introuvable. Crée un compte.'; }
+  }
+  // Ouverture depuis une notification : ?p=annonce → page Annonces
+  const qp = new URLSearchParams(location.search).get('p');
+  if (qp) { if (me && TITRES[qp]) page = qp; history.replaceState(null, '', location.pathname); }
+  render();
+  if (me && me.status === 'active') pushInit();
+}
+
+function authView() {
+  const up = tab === 'up';
+  return `<div class="ctr"><div class="big">${logo()}</div><div style="font-weight:800;font-size:17px">${esc(BR.name)}</div><div class="s">${SLOGAN}</div>
+  <div class="tabs"><button class="${up ? '' : 'on'}" onclick="setTab('in')">Connexion</button><button class="${up ? 'on' : ''}" onclick="setTab('up')">Créer un compte</button></div>
+  ${msg ? `<div class="err" role="alert">${esc(msg)}</div>` : ''}
+  <form class="left" onsubmit="${up ? 'signup' : 'signin'}(event)">
+  ${up ? `<label class="s">Prénom<input class="f" name="fn" required autocomplete="given-name"></label><label class="s" style="display:block;margin-top:10px">Nom (chiffres acceptés, ex. : Sarr N°1)<input class="f" name="ln" required autocomplete="family-name" placeholder="Sarr N°1"></label>` : ''}
+  <label class="s" style="display:block;margin-top:10px">Numéro de téléphone<input class="f" name="ph" type="tel" required autocomplete="tel"></label>
+  <label class="s" style="display:block;margin-top:10px">Mot de passe${up ? ' (6 caractères minimum)' : ''}<input class="f" name="pw" type="password" required minlength="6" autocomplete="${up ? 'new-password' : 'current-password'}"></label>
+  <button class="b" style="width:100%;margin-top:18px;--c:${up ? '#15803d' : '#2563eb'};--d:${up ? '#14532d' : '#1e3a8a'}">${up ? 'Créer mon compte' : 'Se connecter'}</button></form>
+  ${up ? '<div class="s">Un administrateur validera ton compte avant ta première connexion.</div>' : ''}
+  <div class="ft">${FOOT}</div></div>`;
+}
+function setTab(t) { tab = t; msg = ''; render(); }
+async function signin(e) {
+  e.preventDefault(); const f = new FormData(e.target);
+  const { error } = await SB.auth.signInWithPassword({ email: mail(f.get('ph')), password: f.get('pw') });
+  if (error) { msg = 'Numéro ou mot de passe incorrect.'; return render(); }
+  msg = ''; boot();
+}
+async function signup(e) {
+  e.preventDefault(); const f = new FormData(e.target); const ph = digits(f.get('ph'));
+  if (ph.length < 6) { msg = 'Numéro de téléphone invalide.'; return render(); }
+  const { error } = await SB.auth.signUp({ email: mail(ph), password: f.get('pw'),
+    options: { data: { first_name: f.get('fn').trim(), last_name: f.get('ln').trim(), phone: ph } } });
+  if (error) { msg = /registered|already/i.test(error.message) ? 'Ce numéro est déjà inscrit.' : error.message; return render(); }
+  msg = ''; boot();
+}
+async function logout() { if (PUSH.sub) await SB.rpc('amd_push_retirer', { p_endpoint: PUSH.sub.endpoint }).catch(() => {}); PUSH.sub = null; await SB.auth.signOut(); me = null; menu = false; page = 'home'; tab = 'in'; render(); }
+
+function stateView(icon, titre, texte) {
+  return `<div class="ctr"><div class="big">${logo()}</div><div style="font-weight:800;font-size:17px">${esc(BR.name)}</div>
+  <div class="c" style="background:linear-gradient(135deg,#b45309,#78350f);padding:24px 20px"><div style="font-weight:800;font-size:19px">${titre}</div><div style="font-size:14px;color:#fde68a;margin-top:8px;line-height:1.5">${texte}</div></div>
+  ${btn('Actualiser', 'boot()', 'blue')}${btn('Se déconnecter', 'logout()', 'gray')}<div class="ft">${FOOT}</div></div>`;
+}
+
+const TITRES = { notify: 'Notifications', settings: 'Paramètres', home: 'Accueil', profile: 'Mon compte', budget: 'Caisse de l’amicale', situation: 'Situation des membres', requests: 'Inscriptions', members: 'Membres', amicale: 'La vie de l’amicale', admin: 'Espace Admin', cotis: 'Cotisations', guide: 'Bienvenue' };
+const stat = (l, v, fn, c) => `<button class="b stat" style="--c:${COL[c][0]};--d:${COL[c][1]}" onclick="${fn}"><span>${l}</span><b>${v}</b></button>`;
+Object.assign(IC, { star: 'M12 3l2.8 5.7 6.2.9-4.5 4.4 1 6.2L12 17.3 6.5 20.2l1-6.2L3 9.6l6.2-.9z', bell: 'M6 8a6 6 0 0112 0c0 7 3 9 3 9H3s3-2 3-9M10 21a2 2 0 004 0', doc: 'M7 3h8l4 4v14H7zM15 3v4h4M10 12h6M10 16h6', image: 'M4 5h16v14H4zM4 15l5-5 4 4 3-3 4 4M9 9h.01', cal: 'M4 6h16v14H4zM4 10h16M8 3v4M16 3v4', heart: 'M12 21s-8-5-8-11a4.5 4.5 0 018-2.8A4.5 4.5 0 0120 10c0 6-8 11-8 11z', mega: 'M3 11v3h4l8 5V6L7 11zM18 9a4 4 0 010 6' });
+const PK = { honneur: { t: "Page d'honneur", ex: 'Titre ou année', thumb: 1 }, rappel: { t: 'Rappel important' }, annonce: { t: 'Annonces' }, statuts: { t: 'Statuts', pdf: 1 }, reglement: { t: 'Règlement intérieur', pdf: 1 }, image: { t: "Images de l'amicale", noTitle: 1 }, morts: { t: 'À nos morts', ex: 'Naissance – Décès', thumb: 1 } };
+Object.keys(PK).forEach(k => TITRES[k] = PK[k].t); TITRES.event = 'Situation du membre'; TITRES.global = 'Bilan de l’année';
+IC.chart = 'M4 20V10M10 20V4M16 20v-7M22 20H2';
+const EVL = { fiancailles: 'Fiançailles', mariage: 'Mariage', circoncision: 'Circoncision', communion: 'Communion', bapteme: 'Baptême', deces: 'Décès' };
+const REL = { pere: 'Père', mere: 'Mère', enfant: 'Enfant', conjoint: 'Conjoint(e)', frere: 'Frère', soeur: 'Sœur' };
+const TABOF = p => ({ home: 'home', profile: 'profile', budget: 'budget', admin: 'admin', requests: 'admin', members: 'admin', cotis: 'admin', global: 'admin', notify: 'admin', settings: 'admin', event: 'admin' })[p] || 'amicale';
+const PARENT = { requests: 'admin', members: 'admin', cotis: 'admin', global: 'admin', notify: 'admin', settings: 'admin', event: 'cotis' };
+const MAINP = ['home', 'profile', 'budget', 'amicale', 'admin'];
+let PREV = null;
+function go(p) { if (p !== page && !MAINP.includes(p)) PREV = MAINP.includes(page) || p !== PREV ? page : PREV; page = p; menu = false; window.scrollTo(0, 0); render(); }
+function back() { const t = PARENT[page] || (TABOF(page) === 'admin' ? 'admin' : PREV && !MAINP.includes(PREV) ? PREV : TABOF(page)); PREV = null; go(t === page ? TABOF(page) : t); }
+Object.assign(IC, { shield: 'M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z', back: 'M15 5l-7 7 7 7', pin: 'M12 17v5M5 10l7-7 7 7-4 1-3 6-3-6z', check: 'M4 12l5 5L20 6', phone: 'M5 4h4l2 5-2.5 1.5a11 11 0 005 5L15 13l5 2v4a2 2 0 01-2 2A16 16 0 013 6a2 2 0 012-2', pen: 'M12 20h9M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z', help: 'M9.1 9a3 3 0 015.8 1c0 2-3 2.5-3 4.5M12 18h.01M12 21a9 9 0 100-18 9 9 0 000 18z' });
+function tog() { menu = !menu; $('.dr').classList.toggle('on', menu); $('.ov').classList.toggle('on', menu); }
+function item(p, t, ic) { return `<button class="i ${page === p ? 'a' : ''}" onclick="go('${p}')">${ico(ic)}${t}</button>`; }
+
+function render() {
+  const a = $('#app');
+  if (!me) { a.innerHTML = authView(); return; }
+  const m = { pending: ['Compte en attente de validation', `Bonjour ${esc(me.first_name)}, ta demande a bien été envoyée. Un administrateur va la valider. Tu pourras alors accéder à la plateforme.`],
+    rejected: ['Demande rejetée', 'Ta demande d\'inscription a été rejetée. Contacte un administrateur de l\'amicale.'],
+    disabled: ['Compte désactivé', 'Ton compte est désactivé. Contacte un administrateur pour le réactiver.'],
+    deleted: ['Compte supprimé', 'Ce compte n\'est plus actif. Contacte un administrateur de l\'amicale.'] }[me.status];
+  if (m) { a.innerHTML = stateView('', m[0], m[1]); return; }
+  if (!isAdm() && TABOF(page) === 'admin') page = 'home';
+  if (!lsGet('amd_guide_vu')) page = 'guide';
+  const T = [['home', 'home', 'Accueil'], ['profile', 'user', 'Mon compte'], ['budget', 'wallet', 'Caisse'], ['amicale', 'mega', 'Amicale']].concat(isAdm() ? [['admin', 'shield', 'Admin']] : []), cur = TABOF(page);
+  const left = MAINP.includes(page) || page === 'guide' ? `<i class="lo">${logo()}</i>` : `<button class="ic" onclick="back()" aria-label="Retour">${ico('back')}</button>`;
+  a.innerHTML = `<div class="hd">${left}<div class="lg"><div><b>${esc(BR.name)}</b><span>${TITRES[page] || ''}</span></div></div></div>
+  <main id="c" class="pg"><div class="s">Chargement…</div></main>
+  ${page === 'guide' ? '' : `<nav class="bn" aria-label="Onglets"><div class="bn-in" style="grid-template-columns:repeat(${T.length},1fr)">${T.map(([k, i, l]) => `<button class="${cur === k ? 'on' : ''}" onclick="go('${k}')" ${cur === k ? 'aria-current="page"' : ''}>${ico(i)}${l}${k === 'admin' ? '<span class="bdg" id="bd-adm"></span>' : ''}</button>`).join('')}</div></nav>`}
+  <div id="pushgate"></div>`;
+  setBadges(); refreshPending(); fill();
+}
+
+async function fill() {
+  const c = $('#c'); let h = '';
+  if (page === 'home') h = await homeV();
+  else if (page === 'guide') h = guideV();
+  else if (page === 'amicale') h = await amicaleV();
+  else if (page === 'admin') h = isAdm() ? await adminV() : '';
+  else if (page === 'cotis') h = isAdm() ? (COSEG === 'sp' ? await specialsV() : await situationV()) : '';
+  else if (page === 'profile') h = (await profileV()) + await mesSpecialesV() + '<div id="pushbox" class="c"></div>' + `<button class="c" onclick="lsSet('amd_guide_vu','');go('guide')" style="display:flex;justify-content:space-between;align-items:center;color:var(--tx);font:inherit;font-weight:700;cursor:pointer;width:100%"><span>Comment ça marche ?</span><span style="color:#facc15">→</span></button>` + btn('Se déconnecter', 'logout()', 'gray') + `<div class="ft">${FOOT}</div>`;
+  else if (page === 'notify') h = isAdm() ? await notifyV() : '';
+  else if (page === 'settings') h = await settingsV();
+  else if (page === 'budget') h = await budgetV();
+  else if (page === 'situation') h = await situationV();
+  else if (page === 'event') h = await eventV();
+  else if (page === 'global') h = await globalV();
+  else if (PK[page]) h = await postsV(page);
+  else if (page === 'requests') h = await listV(['pending', 'rejected'], true);
+  else h = await listV(['active', 'disabled', 'deleted'], false);
+  if (c) c.innerHTML = h + (['profile', 'guide'].includes(page) ? '' : `<div class="ft">${FOOT}</div>`);
+  if (page === 'cotis' && c) c.insertAdjacentHTML('afterbegin', `<div class="seg2"><button class="${COSEG === 'tr' ? 'on' : ''}" onclick="COSEG='tr';fill()">Tranches annuelles</button><button class="${COSEG === 'sp' ? 'on' : ''}" onclick="COSEG='sp';fill()">Exceptionnelles</button></div>`);
+  pushPaint();
+  if (page === 'home') notifLoad();
+}
+
+const ST = { pending: ['En attente', '#c2410c'], rejected: ['Rejeté', '#b91c1c'], active: ['Actif', '#15803d'], disabled: ['Désactivé', '#4b5563'], deleted: ['Supprimé', '#b91c1c'] };
+const RL = { owner: ['Propriétaire', '#b45309'], admin: ['Administrateur', '#7c3aed'] };
+async function listV(statuses, req) {
+  const { data, error } = await SB.from('profiles').select('*').in('status', statuses).order('created_at', { ascending: false });
+  if (error) return `<div class="err">${esc(error.message)}</div>`;
+  if (!data.length) return `<div class="c s">${req ? 'Aucune demande en attente.' : 'Aucun membre.'}</div>`;
+  MB = {}; data.forEach(p => MB[p.id] = p);
+  const rows = data.map(p => {
+    const t = RL[p.role] || ST[p.status], who = `<div><div style="font-weight:700">${esc(p.first_name)} ${esc(p.last_name)}</div><div class="s">${esc(p.phone)}</div></div>`;
+    let ac = '';
+    if (p.id === me.id) ac = '';
+    else if (p.status === 'pending') ac = `<div class="g2">${btn('Valider', `act('${p.id}','active')`, 'green')}${btn('Rejeter', `act('${p.id}','rejected')`, 'red')}</div>`;
+    else if (p.status === 'rejected') ac = `<div style="margin-top:12px">${btn('Valider quand même', `act('${p.id}','active')`, 'green')}</div>`;
+    else if (p.role === 'owner') ac = '';
+    else if (p.status === 'active') ac = `<div class="g2">${btn('Désactiver', `act('${p.id}','disabled')`, 'gray')}${isOwn() ? btn(p.role === 'admin' ? 'Retirer admin' : 'Nommer admin', `setRole('${p.id}','${p.role === 'admin' ? 'member' : 'admin'}')`, 'vio') : ''}</div>`;
+    else ac = `<div class="g2">${btn(p.status === 'deleted' ? 'Restaurer' : 'Réactiver', `act('${p.id}','active')`, 'green')}</div>`;
+    if (isOwn() && p.id !== me.id && p.role !== 'owner' && ['active', 'disabled'].includes(p.status))
+      ac += `<div style="margin-top:12px">${btn('Supprimer', `del('${p.id}')`, 'red')}</div>`;
+    if (isOwn() && p.id !== me.id && p.role !== 'owner' && ['deleted', 'rejected'].includes(p.status))
+      ac += `<div style="margin-top:12px">${btn('Supprimer définitivement', `purge('${p.id}')`, 'red')}</div>`;
+    if (p.role !== 'owner' || isOwn())
+      ac += `<div style="margin-top:12px">${btnS('Modifier le nom', `renameMember('${p.id}')`, 'gray')}</div>`;
+    return `<div class="c" data-n="${esc(norm(p.first_name + ' ' + p.last_name + ' ' + p.phone))}"><div class="m">${who}<span class="tag" style="background:${t[1]}">${t[0]}</span></div>${ac}</div>`;
+  }).join('');
+  return `<div style="font-weight:700;font-size:16px">${req ? data.length + ' demande(s)' : data.length + ' compte(s)'}</div>${req ? '' : searchBox()}${rows}`;
+}
+async function act(id, status) {
+  const { error } = await SB.from('profiles').update({ status }).eq('id', id);
+  if (error) alert(error.message); fill();
+}
+async function setRole(id, role) {
+  const { error } = await SB.from('profiles').update({ role }).eq('id', id);
+  if (error) alert(error.message); fill();
+}
+function del(id) { if (confirm('Supprimer ce compte ? Il pourra être restauré plus tard.')) act(id, 'deleted'); }
+
+
+const YEAR = new Date().getFullYear();
+const num = n => Number(n || 0).toLocaleString('fr-FR');
+const fcfa = n => num(n) + ' FCFA';
+const dfr = d => new Date(d + 'T00:00:00').toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
+const today = () => new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+const btnS = (t, fn, c) => btn(t, fn, c).replace('class="b"', 'class="b sm"');
+async function trancheAmt() {
+  const { data } = await SB.from('amicale_settings').select('value').eq('key', 'tranche_amount').maybeSingle();
+  return Number(data?.value || 0);
+}
+
+async function homeV() {
+  const [{ data: sm }, { data: tr }, sp, { data: rp }] = await Promise.all([SB.rpc('budget_summary'),
+    SB.from('amicale_tranches').select('tranche,validated_at').eq('member_id', me.id).eq('year', YEAR), loadSpeciales(),
+    SB.from('amd_rappels').select('id,items,annee,created_at').eq('member_id', me.id).order('id', { ascending: false }).limit(5)]);
+  const b = sm || { opening: 0, entrees: 0, depenses: 0 };
+  const t1 = (tr || []).find(x => x.tranche === 1), t2 = (tr || []).find(x => x.tranche === 2), nT = (t1 ? 1 : 0) + (t2 ? 1 : 0);
+  const paidSp = id => SP.pay.some(x => x.cotisation_id === id && x.member_id === me.id);
+  const isPaid = (it, an) => it === 't1' ? (an !== YEAR || !!t1) : it === 't2' ? (an !== YEAR || !!t2) : paidSp(Number(String(it).slice(3)));
+  const rap = (rp || []).map(r => ({ ...r, reste: (r.items || []).filter(it => !isPaid(it, r.annee)) })).filter(r => r.reste.length).slice(0, 1);
+  const lab = it => it === 't1' || it === 't2' ? `la tranche ${it[1]} de ${YEAR}` : (x => x ? `la cotisation « ${esc(x.titre)} » (${num(x.montant)} FCFA)` : 'une cotisation')(SP.list.find(x => 'sp:' + x.id === it));
+  const hr = new Date().getHours(), hello = hr >= 18 || hr < 5 ? 'Bonsoir' : 'Bonjour', d = new Date();
+  return `<div style="padding:2px 4px"><div class="s">${d.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}</div><div style="font-size:28px;font-weight:800;letter-spacing:-.5px;margin-top:2px">${hello}, ${esc(me.first_name)}</div></div>
+  <div id="pushhome"></div>
+  ${rap.map(r => `<div class="c k3" style="--c:#dc2626;--d:#7f1d1d"><div class="m"><span style="display:flex;align-items:center;gap:6px;font-size:11px;font-weight:800;letter-spacing:1px">${ico('pin')}RAPPEL PERSONNEL</span><span style="font-size:12px;opacity:.85">${dfr(r.created_at.slice(0, 10))}</span></div>
+    <div style="font-weight:800;font-size:16px;margin-top:8px">Il te reste à payer :</div><div style="font-size:14px;line-height:1.6;margin-top:4px">${r.reste.map(it => '• ' + lab(it)).join('<br>')}</div>
+    <div style="font-size:12px;opacity:.9;margin-top:8px">Ce rappel reste affiché jusqu'à la validation de ton paiement par le trésorier.</div></div>`).join('')}
+  ${SP.list.filter(x => x.ouverte).map(x => { const ok = paidSp(x.id), n = SP.pay.filter(y => y.cotisation_id === x.id).length; return `<div class="c k3" style="--c:${ok ? '#15803d' : '#ea580c'};--d:${ok ? '#14532d' : '#7c2d12'}">
+    <div class="m"><span style="font-size:11px;font-weight:800;letter-spacing:1px">COTISATION EN COURS</span><span class="tag" style="background:rgba(0,0,0,.25)">${ok ? 'Payée ✓' : 'À payer'}</span></div>
+    <div style="font-weight:800;font-size:17px;margin-top:8px">${esc(x.titre)}</div><div class="m" style="font-size:14px;margin-top:4px"><span>${num(x.montant)} FCFA par membre</span>${x.date_limite ? `<span style="opacity:.9">avant le ${dfr(x.date_limite)}</span>` : ''}</div>
+    <div style="font-size:12px;opacity:.9;margin-top:6px">${n} membre${n > 1 ? 's ont' : ' a'} déjà cotisé · <button class="lnk" style="color:#fff;font-size:12px;text-decoration:underline" onclick="go('situation')">voir qui</button></div></div>`; }).join('')}
+  <button class="c k3" style="--c:#16a34a;--d:#14532d" onclick="go('budget')"><div class="s" style="font-size:14px">Somme disponible en banque</div><div style="font-size:30px;font-weight:800;margin-top:6px">${fcfa((b.opening || 0) + b.entrees - b.depenses)}</div><div class="s" style="margin-top:4px">Toucher pour voir le détail de la caisse →</div></button>
+  <button class="c k3" style="--c:#2563eb;--d:#1e3a8a" onclick="go('profile')"><div class="m"><b style="font-size:16px">Ma cotisation ${YEAR}</b><span class="tag" style="background:rgba(0,0,0,.25)">${nT === 2 ? 'À jour ✓' : nT + ' tranche sur 2'}</span></div>
+    <div class="bar" style="margin:12px 0 10px"><i style="width:${nT * 50}%"></i></div><div class="m" style="font-size:13px"><span>Tranche 1 : ${t1 ? 'payée ✓' : 'à payer'}</span><span>Tranche 2 : ${t2 ? 'payée ✓' : 'à payer'}</span></div></button>
+  <div style="font-weight:800;font-size:17px;padding:4px 4px 0">Annonces</div>
+  <div id="notifbox"></div>`;
+}
+
+async function profileV() {
+  const [amt, { data: pay }, { data: ov }, { data: evs }] = await Promise.all([trancheAmt(),
+    SB.from('amicale_tranches').select('id,tranche,validated_at').eq('member_id', me.id).eq('year', YEAR),
+    SB.rpc('members_overview', { y: YEAR }), SB.from('amicale_events').select('*').eq('member_id', me.id).eq('kind', 'deces')]);
+  const get = t => (pay || []).find(x => x.tranche === t);
+  const paid = (pay || []).length * amt, tot = amt * 2, pct = tot ? Math.min(100, Math.round(paid * 100 / tot)) : 0;
+  const row = t => { const p = get(t); return `<div class="row"><div>Tranche ${t} · ${num(amt)}<div class="s">${p ? 'Payée le ' + dfr(p.validated_at) : 'À payer'}</div></div><span class="tag" style="background:${p ? '#15803d' : '#c2410c'}">${p ? 'Payée' : 'En attente'}</span></div>`; };
+  const r = RL[me.role];
+  const o = (ov || []).find(x => x.member_id === me.id) || { fiancailles: 0, baptemes: 0, deces: 0 };
+  const fi = o.fiancailles >= 1, ma = o.groupe === 'mariage';
+  const er = (t, sub, tg, col) => `<div class="row"><div>${t}<div class="s">${sub}</div></div><span class="tag" style="background:${col}">${tg}</span></div>`;
+  const G = '#15803d', X = '#4b5563';
+  return `<div class="c" style="background:linear-gradient(135deg,#1e3a8a,#2563eb)"><div class="m"><div style="font-weight:800;font-size:18px">${esc(me.first_name)} ${esc(me.last_name)}</div>${r ? `<span class="tag" style="background:${r[1]}">${r[0]}</span>` : ''}</div><div style="font-size:13px;color:#dbe6ff;margin-top:4px">${esc(me.phone)}</div></div>
+  <div class="c" style="background:linear-gradient(135deg,#15803d,#166534)"><div style="font-size:13px;color:#d1fae5">Cotisations ${YEAR}</div><div style="font-size:24px;font-weight:800;margin-top:4px">${num(paid)} / ${num(tot)} FCFA</div>
+  <div style="height:12px;border-radius:6px;background:#14532d;margin-top:10px;overflow:hidden"><div style="width:${pct}%;height:100%;background:#86efac"></div></div><div style="font-size:13px;color:#d1fae5;margin-top:6px">${pct} % payé</div></div>
+  <div class="c" style="padding-top:6px;padding-bottom:6px">${row(1)}${row(2)}</div>
+  <div class="c" style="padding-top:8px;padding-bottom:8px"><div class="m" style="padding:6px 0;flex-wrap:wrap"><b>Mes événements</b><div style="display:flex;gap:6px"><span class="tag" style="background:${fi ? G : X}">Fiancé(e) : ${fi ? 'Oui' : 'Non'}</span><span class="tag" style="background:${ma ? G : X}">Marié(e) : ${ma ? 'Oui' : 'Non'}</span></div></div>
+  ${er('Fiançailles', 'Limite : 1', o.fiancailles + '/1', fi ? X : G)}
+  ${er('Mariage, circoncision ou communion', o.groupe ? EVL[o.groupe] + ' célébré' : 'Un seul des trois · limite 1', (o.groupe ? 1 : 0) + '/1', o.groupe ? X : G)}
+  ${er('Baptêmes', `${o.baptemes} reçu(s) sur 4 · il te reste ${4 - o.baptemes}`, o.baptemes + '/4', o.baptemes >= 4 ? X : G)}
+  ${er('Décès', o.deces ? 'Parent : ' + (evs || []).map(e => REL[e.relative] || e.relative).join(', ') : 'Père, mère, enfant, conjoint(e), frère ou sœur', o.deces + ' reçu(s)', o.deces ? '#b45309' : X)}</div>`;
+}
+
+let BM = null;
+const MN = (y, m) => { const t = new Date(y, m - 1, 1).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' }); return t.charAt(0).toUpperCase() + t.slice(1); };
+const CHEV = d => `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${d}"/></svg>`;
+function shiftMonth(d) {
+  const nd = new Date(BM.y, BM.m - 1 + d, 1), now = new Date();
+  if (nd > new Date(now.getFullYear(), now.getMonth(), 1)) return;
+  BM = { y: nd.getFullYear(), m: nd.getMonth() + 1 }; fill();
+}
+async function budgetV() {
+  const now = new Date(); if (!BM) BM = { y: now.getFullYear(), m: now.getMonth() + 1 };
+  const p2 = n => String(n).padStart(2, '0');
+  const d0 = `${BM.y}-${p2(BM.m)}-01`, d1 = BM.m === 12 ? `${BM.y + 1}-01-01` : `${BM.y}-${p2(BM.m + 1)}-01`;
+  const [{ data: sm }, { data: mo }, { data: list, error }] = await Promise.all([SB.rpc('budget_summary'), SB.rpc('budget_month', { y: BM.y, m: BM.m }),
+    SB.from('amicale_movements').select('*').gte('op_date', d0).lt('op_date', d1).order('op_date', { ascending: false }).order('id', { ascending: false })]);
+  if (error) return `<div class="err">${esc(error.message)}</div>`;
+  const g = sm || { opening: 0, entrees: 0, depenses: 0 }, k = mo || { report: 0, entrees: 0, depenses: 0 };
+  const total = (g.opening || 0) + g.entrees - g.depenses, fin = k.report + k.entrees - k.depenses;
+  const cur = BM.y === now.getFullYear() && BM.m === now.getMonth() + 1;
+  const rows = (list || []).map(m => `<div class="row"><div style="min-width:0"><div>${esc(m.description)}</div><div class="s">${m.kind === 'entree' ? 'Entrée' : 'Dépense'} · ${dfr(m.op_date)}</div></div>
+    <div style="text-align:right;white-space:nowrap"><b style="color:${m.kind === 'entree' ? '#4ade80' : '#f87171'}">${m.kind === 'entree' ? '+' : '−'} ${num(m.amount)}</b>${isAdm() ? `<div style="margin-top:6px">${btnS('Supprimer', `delMov(${m.id})`, 'red')}</div>` : ''}</div></div>`).join('');
+  const form = isAdm() ? `<form class="c" onsubmit="addMov(event)"><div style="font-weight:700">Ajouter un mouvement</div>
+    <select class="f" name="kind" aria-label="Type"><option value="entree">Entrée d'argent</option><option value="depense">Dépense</option></select>
+    <input class="f" name="amount" type="number" min="1" step="1" inputmode="numeric" placeholder="Montant (FCFA)" required>
+    <input class="f" name="desc" placeholder="Description" required>
+    <input class="f" name="date" type="date" value="${cur ? today() : d0}" required>
+    <button class="b" style="width:100%;margin-top:14px;--c:#facc15;--d:#a16207;color:#1c1917;text-shadow:none">Enregistrer</button></form>` : '';
+  const open = isAdm() ? `<form class="c" onsubmit="saveOpening(event)"><label class="s">Solde initial (report de 2025), en FCFA<input class="f" name="op" type="number" step="1" inputmode="numeric" value="${g.opening || 0}" required></label>
+    <button class="b sm" style="width:100%;margin-top:12px">Enregistrer le solde initial</button></form>` : '';
+  return `<div class="c" style="background:linear-gradient(135deg,#15803d,#166534)"><div style="font-size:13px;color:#d1fae5">Somme disponible en caisse</div><div style="font-size:30px;font-weight:800;margin-top:6px">${fcfa(total)}</div><div style="font-size:12px;color:#d1fae5;margin-top:4px">dont solde initial (report 2025) : ${fcfa(g.opening || 0)}</div></div>
+  <div class="c m" style="padding:8px"><button class="ic" onclick="shiftMonth(-1)" aria-label="Mois précédent">${CHEV('M15 5l-7 7 7 7')}</button><b>${MN(BM.y, BM.m)}</b><button class="ic" onclick="shiftMonth(1)" aria-label="Mois suivant" ${cur ? 'disabled style="opacity:.3"' : ''}>${CHEV('M9 5l7 7-7 7')}</button></div>
+  <div class="g3"><div class="c st" style="background:linear-gradient(135deg,#15803d,#166534)"><div class="s" style="color:#d1fae5">Entrées</div><b>${num(k.entrees)}</b></div>
+  <div class="c st" style="background:linear-gradient(135deg,#b91c1c,#7f1d1d)"><div class="s" style="color:#fecaca">Dépenses</div><b>${num(k.depenses)}</b></div>
+  <div class="c st" style="background:linear-gradient(135deg,#2563eb,#1e3a8a)"><div class="s" style="color:#dbe6ff">Solde fin de mois</div><b>${num(fin)}</b></div></div>
+  <div class="s" style="text-align:center">Solde au début du mois : ${fcfa(k.report)}</div>
+  ${form}<div class="c" style="padding-top:8px;padding-bottom:8px"><div style="font-weight:700;padding:6px 0">Détail de ${MN(BM.y, BM.m)}</div>${rows || '<div class="s" style="padding:8px 0">Aucun mouvement ce mois-ci.</div>'}</div>${open}`;
+}
+async function saveOpening(e) {
+  e.preventDefault(); const v = parseInt(new FormData(e.target).get('op'), 10);
+  const { data, error } = await SB.from('amicale_settings').update({ value: String(v) }).eq('key', 'opening_balance').select();
+  if (error || !data.length) { alert(error ? error.message : "Exécute d'abord le fichier 7-budget-par-mois.sql dans Supabase."); return; }
+  alert('Solde initial enregistré.'); fill();
+}
+const norm = t => String(t || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+const searchBox = () => '<input class="f" type="search" placeholder="Rechercher un membre" aria-label="Rechercher un membre" oninput="filterCards(this.value)" style="margin-top:0">';
+function filterCards(q) { q = norm(q).trim(); document.querySelectorAll('#c [data-n]').forEach(e => { e.style.display = !q || e.dataset.n.includes(q) ? '' : 'none'; }); }
+async function addMov(e) {
+  e.preventDefault(); const f = new FormData(e.target);
+  const { error } = await SB.from('amicale_movements').insert({ kind: f.get('kind'), amount: parseInt(f.get('amount'), 10), description: f.get('desc').trim(), op_date: f.get('date') });
+  if (error) alert(error.message); fill();
+}
+async function delMov(id) {
+  if (!confirm('Supprimer ce mouvement ? Le solde sera recalculé.')) return;
+  const { data, error } = await SB.from('amicale_movements').delete().eq('id', id).select();
+  if (error || !data.length) alert(error ? error.message : "Suppression refusée : exécute d'abord le fichier 9-freres-soeurs-et-suppression.sql dans Supabase.");
+  fill();
+}
+
+let SIT = {};
+async function situationV() {
+  const [amt, { data, error }, { data: an }] = await Promise.all([trancheAmt(), SB.rpc('members_overview', { y: YEAR }), SB.rpc('amd_annuaire'), loadSpeciales()]);
+  if (error) return `<div class="err">${esc(error.message)}</div>`;
+  SIT = {}; (data || []).forEach(p => SIT[p.member_id] = p.first_name + ' ' + p.last_name);
+  const TEL = {}; (an || []).forEach(x => TEL[x.id] = x.phone); const OPEN = SP.list.filter(x => x.ouverte);
+  const chip = (ok, t) => `<span class="tag" style="background:${ok ? '#15803d' : '#4b5563'}">${t}</span>`;
+  const rows = (data || []).map(p => `<div class="c" data-n="${esc(norm(p.first_name + ' ' + p.last_name + ' ' + (TEL[p.member_id] || '')))}"><div class="m"><b>${esc(p.first_name)} ${esc(p.last_name)}</b><span class="s">${(p.t1 ? 1 : 0) + (p.t2 ? 1 : 0)}/2 tranches</span></div>
+    ${TEL[p.member_id] ? `<a href="tel:${esc(String(TEL[p.member_id]).replace(/\s/g, ''))}" style="display:inline-flex;align-items:center;gap:6px;margin-top:6px;font-weight:600;color:#facc15;text-decoration:none">${ico('phone')}${esc(TEL[p.member_id])}</a>` : ''}
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">${chip(p.t1, 'T1 ' + (p.t1 ? 'payée' : 'non payée'))}${chip(p.t2, 'T2 ' + (p.t2 ? 'payée' : 'non payée'))}${chip(p.fiancailles > 0, 'Fiançailles ' + p.fiancailles + '/1')}${chip(!!p.groupe, p.groupe ? EVL[p.groupe] + ' 1/1' : 'Mar./Circ./Comm. 0/1')}${chip(p.baptemes > 0, 'Baptêmes ' + p.baptemes + '/4')}${chip(p.deces > 0, 'Décès ' + p.deces)}${OPEN.map(x => chip(SP.pay.some(y => y.cotisation_id === x.id && y.member_id === p.member_id), esc(x.titre))).join('')}</div>
+    ${isAdm() ? `${!p.t1 || !p.t2 ? `<div class="g2">${!p.t1 ? btnS('Valider Tranche 1', `pay('${p.member_id}',1)`, 'green') : ''}${!p.t2 ? btnS('Valider Tranche 2', `pay('${p.member_id}',2)`, 'green') : ''}</div>` : ''}<div class="g2" style="margin-top:10px">${btnS('Gérer la situation', `openEvent('${p.member_id}')`, 'or')}${!p.t1 || !p.t2 || OPEN.some(x => !SP.pay.some(y => y.cotisation_id === x.id && y.member_id === p.member_id)) ? btnS('🔔 Rappeler', `rappeler('${p.member_id}')`, 'red') : ''}</div>` : ''}</div>`).join('');
+  const cfg = isAdm() ? `<form class="c" onsubmit="saveAmt(event)"><label class="s">Montant d'une tranche (FCFA)<input class="f" name="amt" type="number" min="0" step="1" inputmode="numeric" value="${amt}" required></label>
+    <button class="b sm" style="width:100%;margin-top:12px">Enregistrer le montant</button></form>` : '';
+  const aj = (data || []).filter(p => p.t1 && p.t2).length;
+  return `<div class="q"><div class="c k3" style="--c:#16a34a;--d:#14532d"><div class="s">À jour (T1 + T2)</div><b style="font-size:20px">${aj} / ${(data || []).length}</b></div><div class="c k3" style="--c:#ea580c;--d:#7c2d12"><div class="s">Cotisations en cours</div><b style="font-size:20px">${OPEN.length}</b></div></div>
+  <div class="s">Situation ${YEAR} · tranche : ${fcfa(amt)}.${isAdm() ? ' Valider une tranche ne modifie pas la caisse.' : ''}</div>${page === 'cotis' ? cfg : ''}${searchBox().replace('Rechercher un membre"', 'Rechercher un nom ou un numéro"')}${rows || '<div class="c s">Aucun membre actif.</div>'}`;
+}
+
+async function pay(id, t) {
+  if (!confirm(`Valider la tranche ${t} de ${SIT[id]} ? La caisse ne sera pas modifiée.`)) return;
+  const { error } = await SB.from('amicale_tranches').insert({ member_id: id, year: YEAR, tranche: t });
+  if (error) alert(/duplicate|unique/i.test(error.message) ? 'Cette tranche est déjà validée.' : error.message + " (le fichier 6-tranches-hors-caisse.sql a-t-il été exécuté ?)");
+  fill();
+}
+async function saveAmt(e) {
+  e.preventDefault(); const v = parseInt(new FormData(e.target).get('amt'), 10);
+  const { error } = await SB.from('amicale_settings').update({ value: String(v) }).eq('key', 'tranche_amount');
+  alert(error ? error.message : 'Montant enregistré.'); fill();
+}
+
+
+async function globalV() {
+  const [amt, { data, error }] = await Promise.all([trancheAmt(), SB.rpc('members_overview', { y: YEAR })]);
+  if (error) return `<div class="err">${esc(error.message)}</div>`;
+  const L = data || [], n = L.length;
+  const cnt = f => L.filter(f).length, tot = k => L.reduce((s, p) => s + Number(p[k] || 0), 0);
+  const t1 = cnt(p => p.t1), t2 = cnt(p => p.t2), both = cnt(p => p.t1 && p.t2);
+  const ma = cnt(p => p.groupe === 'mariage'), ci = cnt(p => p.groupe === 'circoncision'), co = cnt(p => p.groupe === 'communion');
+  const fi = tot('fiancailles'), ba = tot('baptemes'), de = tot('deces');
+  const pc = v => n ? Math.round(v * 100 / n) : 0;
+  const tile = (lab, val, sub, c1, c2, bar) => `<div class="c" style="background:linear-gradient(135deg,${c1},${c2});box-shadow:0 6px 0 ${c2},0 14px 24px rgba(0,0,0,.35);margin-bottom:6px">
+    <div style="font-size:13px;font-weight:700;opacity:.9">${lab}</div><div style="font-size:30px;font-weight:800;margin-top:4px">${val}</div>
+    ${bar != null ? `<div style="height:10px;border-radius:6px;background:rgba(0,0,0,.25);margin-top:8px;overflow:hidden"><div style="width:${bar}%;height:100%;background:rgba(255,255,255,.85)"></div></div>` : ''}
+    <div style="font-size:12px;opacity:.85;margin-top:6px">${sub}</div></div>`;
+  return `<div class="c" style="background:linear-gradient(135deg,#4c1d95,#7c3aed)"><div style="font-size:13px;color:#ede9fe">Situation globale ${YEAR}</div>
+    <div style="font-size:30px;font-weight:800;margin-top:6px">${n} membre${n > 1 ? 's' : ''} actif${n > 1 ? 's' : ''}</div>
+    <div style="font-size:12px;color:#ede9fe;margin-top:4px">Tranche : ${fcfa(amt)} · ${both} membre${both > 1 ? 's' : ''} à jour des deux tranches</div></div>
+  <div style="font-weight:700;font-size:16px;margin-top:4px">Cotisations ${YEAR}</div>
+  <div class="q">${tile('Tranche 1 payée', `${t1}/${n}`, `${pc(t1)} % · ${fcfa(t1 * amt)}`, '#15803d', '#14532d', pc(t1))}${tile('Tranche 2 payée', `${t2}/${n}`, `${pc(t2)} % · ${fcfa(t2 * amt)}`, '#0f766e', '#134e4a', pc(t2))}</div>
+  <div class="s" style="text-align:center">Total des tranches validées : ${t1 + t2} · ${fcfa((t1 + t2) * amt)}</div>
+  <div style="font-weight:700;font-size:16px;margin-top:4px">Événements</div>
+  ${tile('Mariage, circoncision, communion', ma + ci + co, `Mariages : ${ma} · Circoncisions : ${ci} · Communions : ${co}`, '#2563eb', '#1e3a8a')}
+  <div class="q">${tile('Fiançailles', fi, 'au total', '#c2410c', '#7c2d12')}${tile('Baptêmes', ba, 'au total', '#7c3aed', '#4c1d95')}</div>
+  ${tile('Décès', de, 'Parents proches : père, mère, enfant, conjoint(e), frère, sœur', '#4b5563', '#1f2937')}
+  <div class="s" style="text-align:center">Les chiffres sont calculés comme dans « Situation des membres » et se mettent à jour à chaque visite.</div>`;
+}
+
+let NEWLOGO = null;
+async function settingsV() {
+  NEWLOGO = null;
+  return `<form class="c" onsubmit="saveBrand(event)"><div style="font-weight:700;font-size:16px">Nom et logo de l'amicale</div>
+  <div style="display:flex;align-items:center;gap:14px;margin-top:14px"><div id="lp" class="lo" style="width:76px;height:76px;font-size:12px">${logo()}</div>
+  <label class="b sm" style="flex:1;cursor:pointer;--c:#2563eb;--d:#1e3a8a">Choisir un logo<input type="file" accept="image/*" hidden onchange="pickLogo(this)"></label></div>
+  <label class="s" style="display:block;margin-top:14px">Nom de l'amicale<input class="f" name="name" value="${esc(BR.name)}" required maxlength="80"></label>
+  <button class="b" style="width:100%;margin-top:16px;--c:#15803d;--d:#14532d">Enregistrer</button></form>
+  <div class="s" style="text-align:center">Le nom et le logo s'affichent en haut de toutes les pages et sur l'écran de connexion.</div>
+  <div class="c"><div style="font-weight:700;font-size:16px">Notifications obligatoires</div>
+  <div class="s" style="margin-top:6px;line-height:1.5">Si c'est activé, un membre ne peut pas utiliser A.M.D tant qu'il n'a pas activé les notifications sur son téléphone.</div>
+  <div class="m" style="margin-top:12px"><span class="tag" style="background:${BR.notifOblig ? '#15803d' : '#4b5563'}">${BR.notifOblig ? 'Activé' : 'Désactivé'}</span>${btnS(BR.notifOblig ? 'Désactiver' : 'Activer', `setOblig(${!BR.notifOblig})`, BR.notifOblig ? 'gray' : 'green')}</div></div>`;
+}
+async function setOblig(on) {
+  const { data, error } = await SB.from('amicale_settings').update({ value: on ? 'oui' : 'non' }).eq('key', 'notif_obligatoire').select();
+  if (error || !data.length) { alert(error ? error.message : 'Réglage introuvable.'); return; }
+  BR.notifOblig = on; fill();
+}
+function pickLogo(inp) {
+  const f = inp.files[0]; if (!f) return;
+  const r = new FileReader();
+  r.onload = () => { const im = new Image(); im.onload = () => {
+    const S = 192, c = document.createElement('canvas'); c.width = c.height = S;
+    const m = Math.min(im.width, im.height);
+    c.getContext('2d').drawImage(im, (im.width - m) / 2, (im.height - m) / 2, m, m, 0, 0, S, S);
+    NEWLOGO = c.toDataURL('image/png'); $('#lp').innerHTML = `<img src="${NEWLOGO}" alt="Logo">`;
+  }; im.src = r.result; };
+  r.readAsDataURL(f);
+}
+async function saveBrand(e) {
+  e.preventDefault(); const name = new FormData(e.target).get('name').trim();
+  const rows = [['amicale_name', name]]; if (NEWLOGO !== null) rows.push(['amicale_logo', NEWLOGO]);
+  for (const [k, v] of rows) {
+    const { data, error } = await SB.from('amicale_settings').update({ value: v }).eq('key', k).select();
+    if (error || !data.length) { alert(error ? error.message : "Exécute d'abord le fichier 3-nom-et-logo.sql dans Supabase."); return; }
+  }
+  NEWLOGO = null; await loadBrand(); alert('Enregistré.'); render();
+}
+
+
+let EVM = null;
+function openEvent(id) { EVM = id; go('event'); }
+function relToggle() { const k = document.querySelector('input[name=k]:checked'); $('#rel').style.display = k && k.value === 'deces' ? 'block' : 'none'; }
+async function eventV() {
+  if (!EVM) return '<div class="c s">Choisis un membre dans « Situation des membres ».</div>';
+  const [{ data, error }, { data: pays }, { data: evs }, amt] = await Promise.all([SB.rpc('members_overview', { y: YEAR }),
+    SB.from('amicale_tranches').select('id,tranche,validated_at').eq('member_id', EVM).eq('year', YEAR),
+    SB.from('amicale_events').select('*').eq('member_id', EVM).order('event_date', { ascending: false }), trancheAmt()]);
+  const p = (data || []).find(x => x.member_id === EVM);
+  if (error || !p) return `<div class="err">${esc(error ? error.message : 'Membre introuvable.')}</div>`;
+  SIT[EVM] = p.first_name + ' ' + p.last_name;
+  const tr = t => { const x = (pays || []).find(y => y.tranche === t); return `<div class="row"><div>Tranche ${t} · ${num(amt)}<div class="s">${x ? 'Validée le ' + dfr(x.validated_at) : 'Non validée'}</div></div>${x ? btnS('Annuler', `cancelPay(${x.id})`, 'red') : btnS('Valider Tranche ' + t, `pay('${EVM}',${t})`, 'green')}</div>`; };
+  const evl = (evs || []).map(e => `<div class="row"><div>${EVL[e.kind]}${e.relative ? ' · ' + REL[e.relative] : ''}<div class="s">${dfr(e.event_date)}</div></div>${btnS('Supprimer', `delEvent(${e.id})`, 'red')}</div>`).join('');
+  const opt = (v, l, off, note) => `<label class="opt ${off ? 'off' : ''}"><input type="radio" name="k" value="${v}" ${off ? 'disabled' : ''} required onchange="relToggle()"><span>${l}</span><em>${note}</em></label>`;
+  const gOff = !!p.groupe, gN = gOff ? '1/1 · limite atteinte' : '0/1';
+  return `<div class="c" style="background:linear-gradient(135deg,#1e3a8a,#2563eb)"><div style="font-weight:800;font-size:18px">${esc(p.first_name)} ${esc(p.last_name)}</div><div style="font-size:13px;color:#dbe6ff;margin-top:4px">Valider, annuler ou corriger une information</div></div>
+  <div class="c" style="padding-top:8px;padding-bottom:8px"><div style="font-weight:700;padding:6px 0">Cotisations ${YEAR}</div>${tr(1)}${tr(2)}</div>
+  ${evl ? `<div class="c" style="padding-top:8px;padding-bottom:8px"><div style="font-weight:700;padding:6px 0">Événements enregistrés</div>${evl}</div>` : ''}
+  <form class="c" onsubmit="addEvent(event)" style="padding-top:8px"><div style="font-weight:700;padding:8px 0">Ajouter un événement</div>
+  ${opt('fiancailles', 'Fiançailles', p.fiancailles >= 1, p.fiancailles >= 1 ? '1/1 · limite atteinte' : '0/1')}
+  ${opt('mariage', 'Mariage', gOff, gN)}${opt('circoncision', 'Circoncision', gOff, gN)}${opt('communion', 'Communion', gOff, gN)}
+  ${opt('bapteme', 'Baptême', p.baptemes >= 4, p.baptemes + '/4')}${opt('deces', 'Décès (parent proche)', false, p.deces + ' reçu(s)')}
+  <select class="f" id="rel" name="rel" aria-label="Parent concerné" style="display:none"><option value="pere">Père</option><option value="mere">Mère</option><option value="enfant">Enfant</option><option value="conjoint">Conjoint(e)</option><option value="frere">Frère</option><option value="soeur">Sœur</option></select>
+  <label class="s" style="display:block;margin-top:12px">Date<input class="f" name="date" type="date" value="${today()}" required></label>
+  <button class="b" style="width:100%;margin-top:16px;--c:#15803d;--d:#14532d">Enregistrer l'événement</button></form>
+  <div class="s" style="text-align:center">Mariage, circoncision et communion : un seul des trois par membre.</div>`;
+}
+async function cancelPay(id) {
+  if (!confirm('Annuler la validation de cette tranche ?')) return;
+  const { data, error } = await SB.from('amicale_tranches').delete().eq('id', id).select();
+  if (error || !data.length) alert(error ? error.message : "Annulation impossible : exécute d'abord le fichier 6-tranches-hors-caisse.sql dans Supabase.");
+  fill();
+}
+async function addEvent(e) {
+  e.preventDefault(); const f = new FormData(e.target), k = f.get('k');
+  const row = { member_id: EVM, kind: k, event_date: f.get('date') }; if (k === 'deces') row.relative = f.get('rel');
+  const { error } = await SB.from('amicale_events').insert(row);
+  if (error) { alert(error.message); return; }
+  alert('Événement enregistré.'); fill();
+}
+async function delEvent(id) {
+  if (!confirm('Supprimer cet événement ? Le compteur du membre sera recalculé.')) return;
+  const { error } = await SB.from('amicale_events').delete().eq('id', id);
+  if (error) alert(error.message); fill();
+}
+
+let NEWPH = '';
+function pickPhoto(inp) {
+  const f = inp.files[0]; if (!f) { NEWPH = ''; return; }
+  const r = new FileReader();
+  r.onload = () => { const im = new Image(); im.onload = () => {
+    const k = Math.min(1, 480 / Math.max(im.width, im.height)), c = document.createElement('canvas');
+    c.width = Math.round(im.width * k); c.height = Math.round(im.height * k);
+    c.getContext('2d').drawImage(im, 0, 0, c.width, c.height);
+    NEWPH = c.toDataURL('image/jpeg', .78); $('#pp').innerHTML = `<img src="${NEWPH}" alt="Aperçu" style="max-width:100%;border-radius:12px;margin-top:10px">`;
+  }; im.src = r.result; };
+  r.readAsDataURL(f);
+}
+let NEWPDF = null;
+function pickPdf(inp) {
+  const f = inp.files[0]; NEWPDF = null; $('#pp').innerHTML = '';
+  if (!f) return;
+  if (f.type !== 'application/pdf') { alert('Choisis un fichier PDF.'); inp.value = ''; return; }
+  if (f.size > 10 * 1024 * 1024) { alert('PDF trop lourd (10 Mo maximum).'); inp.value = ''; return; }
+  NEWPDF = f; $('#pp').innerHTML = `<div class="s" style="margin-top:10px">PDF choisi : ${esc(f.name)}</div>`;
+}
+async function postsV(k) {
+  NEWPH = ''; NEWPDF = null; const cf = PK[k];
+  const { data, error } = await SB.from('amicale_posts').select('*').eq('kind', k).order('created_at', { ascending: false }).limit(50);
+  if (error) return `<div class="err">${esc(error.message)}</div>`;
+  const form = isAdm() ? `<form class="c" onsubmit="addPost(event,'${k}')"><div style="font-weight:700">Ajouter</div>
+    ${cf.noTitle ? '' : '<input class="f" name="title" placeholder="Titre" required>'}
+    ${cf.ex ? `<input class="f" name="extra" placeholder="${cf.ex}">` : ''}
+    <textarea class="f" name="body" rows="${cf.pdf ? 3 : 5}" placeholder="Texte${cf.pdf ? ' (facultatif)' : ''}"${cf.noTitle || cf.pdf ? '' : ' required'}></textarea>
+    ${cf.pdf ? '<label class="b sm" style="margin-top:12px;cursor:pointer;--c:#2563eb;--d:#1e3a8a">Ajouter un PDF<input type="file" accept="application/pdf" hidden onchange="pickPdf(this)"></label>'
+      : '<label class="b sm" style="margin-top:12px;cursor:pointer;--c:#2563eb;--d:#1e3a8a">Ajouter une photo<input type="file" accept="image/*" hidden onchange="pickPhoto(this)"></label>'}<div id="pp"></div>
+    <label class="chk"><input type="checkbox" name="notif"${['rappel', 'annonce'].includes(k) ? ' checked' : ''}>📣 Prévenir tous les membres par notification</label>
+    <button class="b" style="width:100%;margin-top:10px;--c:#facc15;--d:#a16207;color:#1c1917;text-shadow:none">Publier</button></form>` : '';
+  const cards = (data || []).map(p => {
+    const del = isAdm() ? `<div style="margin-top:12px">${btnS('Supprimer', `delPost(${p.id})`, 'red')}</div>` : '';
+    const pdf = p.file_url ? `<a class="b sm" href="${esc(p.file_url)}" target="_blank" rel="noopener" style="--c:#2563eb;--d:#1e3a8a;text-decoration:none;margin-top:12px">Ouvrir le PDF</a>` : '';
+    const txt = `<div style="min-width:0;flex:1">${p.title ? `<div style="font-weight:700;font-size:16px">${esc(p.title)}</div>` : ''}${p.extra ? `<div class="s" style="margin-top:2px">${esc(p.extra)}</div>` : ''}${p.body ? `<div style="font-size:14px;margin-top:8px;line-height:1.5;white-space:pre-wrap">${esc(p.body)}</div>` : ''}${pdf}<div class="s" style="margin-top:8px">Publié le ${dfr(p.created_at.slice(0, 10))}</div></div>`;
+    if (cf.thumb) return `<div class="c"><div style="display:flex;gap:14px">${p.photo ? `<img class="ph" src="${esc(p.photo)}" alt="">` : '<div class="ph">Photo</div>'}${txt}</div>${del}</div>`;
+    return `<div class="c">${p.photo ? `<img src="${esc(p.photo)}" alt="" style="width:100%;max-height:300px;object-fit:cover;border-radius:14px;margin-bottom:12px">` : ''}${txt}${del}</div>`;
+  }).join('');
+  return `${form}${cards || '<div class="c s">Rien n\'a encore été publié ici.</div>'}`;
+}
+async function addPost(e, k) {
+  e.preventDefault(); const f = new FormData(e.target); let file_url = null;
+  if (NEWPDF) {
+    const path = `${k}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.pdf`;
+    const up = await SB.storage.from('amicale-docs').upload(path, NEWPDF, { contentType: 'application/pdf' });
+    if (up.error) { alert("Envoi du PDF impossible : " + up.error.message + " (le fichier 5-ajustements.sql a-t-il été exécuté ?)"); return; }
+    file_url = SB.storage.from('amicale-docs').getPublicUrl(path).data.publicUrl;
+  }
+  const { error } = await SB.from('amicale_posts').insert({ kind: k, title: (f.get('title') || '').trim(), body: (f.get('body') || '').trim(), extra: (f.get('extra') || '').trim() || null, photo: NEWPH || null, file_url });
+  if (error) alert(error.message);
+  else if (f.get('notif')) {
+    const t = (f.get('title') || '').trim(), b = (f.get('body') || '').trim();
+    const r = await notifSend({ titre: PK[k].t + (t ? ' : ' + t : ''), message: (b || t || 'Nouvelle publication').slice(0, 300), cible: 'tous', page: k });
+    alert(r.error ? 'Publié, mais la notification n’a pas pu partir : ' + r.error : `Publié et notifié : ${r.envoyes} téléphone(s) atteint(s).`);
+  }
+  NEWPH = ''; NEWPDF = null; fill();
+}
+async function delPost(id) {
+  if (!confirm('Supprimer cette publication ?')) return;
+  const { data: old } = await SB.from('amicale_posts').select('file_url').eq('id', id).maybeSingle();
+  const { error } = await SB.from('amicale_posts').delete().eq('id', id);
+  if (error) { alert(error.message); return; }
+  const u = old && old.file_url, i = u ? u.indexOf('/amicale-docs/') : -1;
+  if (i > 0) await SB.storage.from('amicale-docs').remove([decodeURIComponent(u.slice(i + 14))]);
+  fill();
+}
+
+
+let MB = {}, PENDING = 0;
+/* =====================================================================
+   NOUVELLE ORGANISATION : guide, Amicale, Admin, cotisations exceptionnelles, rappels
+   Les cotisations exceptionnelles sont suivies à part : elles ne touchent jamais la caisse.
+   ===================================================================== */
+let COSEG = 'tr', SP = { list: [], pay: [] };
+async function loadSpeciales() {
+  const [{ data: l, error }, { data: p }] = await Promise.all([SB.from('amd_cotis_speciales').select('*').order('id', { ascending: false }).limit(60),
+    SB.from('amd_cotis_paiements').select('cotisation_id,member_id,valide_le')]);
+  SP = { list: error ? [] : (l || []), pay: p || [], ok: !error }; return SP;
+}
+const tile = (go_, icon, c, d, title, sub, badgeId) => `<button class="tl" style="--c:${c};--d:${d}" onclick="go('${go_}')">${badgeId ? `<span class="tb" id="${badgeId}" style="display:none"></span>` : ''}<span class="ti">${ico(icon)}</span><span><b>${title}</b><br><small>${sub}</small></span></button>`;
+function guideV() {
+  const st = (i, c, t, d) => `<div class="c" style="display:flex;gap:14px;align-items:flex-start"><span style="width:42px;height:42px;border-radius:12px;background:${c};display:grid;place-items:center;flex:none">${ico(i)}</span><div><b style="font-size:16px">${t}</b><div class="s" style="font-size:14px;margin-top:4px;line-height:1.5">${d}</div></div></div>`;
+  return `<div style="text-align:center;display:flex;flex-direction:column;align-items:center;gap:10px;padding-top:6px"><div class="big">${logo()}</div><div style="font-size:13px;font-weight:800;letter-spacing:1.5px;color:#facc15">${esc(SLOGAN.toUpperCase())}</div><div style="font-size:26px;font-weight:800">Bienvenue sur ${esc(BR.name)}</div><div class="s" style="font-size:15px">Voici comment marche l'application, en 4 onglets en bas de l'écran.</div></div>
+  ${st('home', '#1e3a8a', '1. Accueil', 'La somme disponible, ta cotisation et les annonces à lire.')}${st('user', '#14532d', '2. Mon compte', 'Tes tranches, tes événements et tes cotisations exceptionnelles.')}
+  ${st('wallet', '#713f12', '3. Caisse', "L'argent de l'amicale, mois par mois.")}${st('mega', '#4c1d95', '4. Amicale', "La situation des membres, les annonces, la page d'honneur, les images et les documents.")}
+  ${btn('Commencer', "lsSet('amd_guide_vu','1');go('home')", 'or')}`;
+}
+async function amicaleV() {
+  const { data: d } = await SB.from('amicale_posts').select('kind,file_url').in('kind', ['statuts', 'reglement']).order('created_at', { ascending: false });
+  const doc = k => (d || []).find(x => x.kind === k && x.file_url);
+  const dl = (k, t) => `<button class="row" style="width:100%;background:none;border-left:0;border-right:0;border-top:0;color:var(--tx);font:inherit;cursor:pointer" onclick="go('${k}')"><span style="display:flex;gap:12px;align-items:center">${ico('doc')}<b style="font-weight:600">${t}</b></span><span style="font-size:12px;color:#93c5fd;font-weight:700">${doc(k) ? 'PDF' : 'Ouvrir'}</span></button>`;
+  return `<button class="tl" style="--c:#2563eb;--d:#172554;min-height:0;flex-direction:row;align-items:center" onclick="go('situation')"><span class="ti">${ico('users')}</span><span style="flex:1"><b>Situation des membres</b><br><small>Cotisations, téléphones et événements de chaque membre</small></span><span>→</span></button>
+  <div class="q">${tile('annonce', 'mega', '#7c3aed', '#2e1065', 'Annonces', 'Les nouvelles de l’amicale')}${tile('rappel', 'bell', '#dc2626', '#7f1d1d', 'Rappels', 'Les rappels importants')}
+  ${tile('honneur', 'star', '#c2410c', '#431407', 'Page d’honneur', 'Membres à l’honneur')}${tile('morts', 'heart', '#4b5563', '#111827', 'À nos morts', 'En mémoire')}</div>
+  <button class="tl" style="--c:#0d9488;--d:#134e4a;min-height:0;flex-direction:row;align-items:center" onclick="go('image')"><span class="ti">${ico('image')}</span><span style="flex:1"><b>Images de l’amicale</b><br><small>Photos</small></span><span>→</span></button>
+  <div class="c" style="padding-top:6px;padding-bottom:6px"><div style="font-weight:700;padding:10px 0 4px">Documents officiels</div>${dl('statuts', 'Statuts de l’amicale')}${dl('reglement', 'Règlement intérieur')}</div>`;
+}
+async function adminV() {
+  const [{ data: ov }, sp, { data: pm }] = await Promise.all([SB.rpc('members_overview', { y: YEAR }), loadSpeciales(), SB.rpc('amd_push_membres')]);
+  const L = ov || [], sans2 = L.filter(p => !p.t2).length, sansN = (pm || []).filter(m => !m.nb_appareils).length, nOpen = SP.list.filter(x => x.ouverte).length;
+  setTimeout(setBadges, 0);
+  return `<div class="s" style="font-size:14px">Tous les outils de gestion au même endroit. Les chiffres rouges indiquent ce qui attend une action.</div>
+  <div class="q">${tile('requests', 'inbox', '#dc2626', '#7f1d1d', 'Inscriptions', 'Valider ou rejeter les nouveaux comptes', 'tl-req')}${tile('members', 'list', '#2563eb', '#172554', 'Membres', L.length + ' actifs · rôles, renommer')}
+  ${tile('cotis', 'check', '#16a34a', '#14532d', 'Cotisations', 'Tranches, exceptionnelles, rappels')}${tile('global', 'chart', '#7c3aed', '#2e1065', 'Bilan de l’année', 'Qui est à jour, totaux')}
+  ${tile('annonce', 'pen', '#c2410c', '#431407', 'Publier', 'Annonce, rappel, honneur, documents')}${tile('notify', 'bell', '#0d9488', '#134e4a', 'Notifications', 'Envoyer un message')}</div>
+  <button class="c" onclick="go('settings')" style="display:flex;gap:12px;align-items:center;color:var(--tx);font:inherit;cursor:pointer;width:100%;text-align:left"><span style="width:38px;height:38px;border-radius:11px;background:#374151;display:grid;place-items:center;flex:none">${ico('gear')}</span><span style="flex:1"><b>Paramètres</b><br><span class="s">Nom, logo, notifications obligatoires</span></span><span style="color:#facc15">→</span></button>
+  <div class="c k3" style="--c:#a16207;--d:#422006"><b style="font-size:16px">À faire</b><div class="m" style="margin-top:8px"><span>Inscriptions en attente</span><b>${PENDING}</b></div><div class="m" style="margin-top:6px"><span>Membres sans tranche 2 (${YEAR})</span><b>${sans2}</b></div><div class="m" style="margin-top:6px"><span>Cotisations exceptionnelles en cours</span><b>${nOpen}</b></div><div class="m" style="margin-top:6px"><span>Membres sans notifications</span><b>${sansN}</b></div></div>`;
+}
+async function mesSpecialesV() {
+  await loadSpeciales(); if (!SP.list.length) return '';
+  return `<div class="c" style="padding-top:8px;padding-bottom:8px"><div style="font-weight:700;padding:8px 0 2px">Cotisations exceptionnelles</div><div class="s" style="padding-bottom:6px">Suivies à part : elles n’entrent pas dans la caisse.</div>${SP.list.map(x => { const ok = SP.pay.some(y => y.cotisation_id === x.id && y.member_id === me.id);
+    return `<div class="row"><div style="min-width:0">${esc(x.titre)}<div class="s">${num(x.montant)} FCFA · ${x.ouverte ? 'en cours' + (x.date_limite ? ', avant le ' + dfr(x.date_limite) : '') : 'clôturée'}</div></div><span class="tag" style="background:${ok ? '#15803d' : x.ouverte ? '#c2410c' : '#4b5563'}">${ok ? 'Payée' : x.ouverte ? 'À payer' : 'Non payée'}</span></div>`; }).join('')}</div>`;
+}
+async function specialsV() {
+  await loadSpeciales();
+  if (!SP.ok) return `<div class="err">Fonction indisponible : le script des cotisations exceptionnelles n’a pas encore été installé dans Supabase.</div>`;
+  const { data: ov } = await SB.rpc('members_overview', { y: YEAR }); const L = ov || [];
+  L.forEach(p => SIT[p.member_id] = p.first_name + ' ' + p.last_name);
+  const form = `<form class="c" onsubmit="spNew(event)"><div style="font-weight:700;font-size:16px">Nouvelle cotisation exceptionnelle</div><div class="s" style="margin-top:6px;line-height:1.5">Pour un mariage, un décès ou tout autre événement. Elle s’affiche sur l’accueil de tous les membres jusqu’à sa clôture. Elle est suivie à part : elle ne modifie pas la somme disponible en banque.</div>
+    <input class="f" name="titre" required maxlength="120" placeholder="Motif (ex. : Mariage de …)"><div class="g2" style="margin-top:0"><input class="f" name="montant" type="number" min="1" step="1" inputmode="numeric" required placeholder="Montant par membre"><input class="f" name="limite" type="date" aria-label="Date limite"></div>
+    <label class="chk"><input type="checkbox" name="notif" checked>📣 Prévenir tous les membres par notification</label>
+    <button class="b" style="width:100%;margin-top:12px;--c:#facc15;--d:#a16207;color:#1c1917;text-shadow:none">Lancer la cotisation</button></form>`;
+  const blocs = SP.list.map(x => { const pay = SP.pay.filter(y => y.cotisation_id === x.id), ids = new Set(pay.map(y => y.member_id)), k = pay.length, n = L.length || 1;
+    const rows = x.ouverte ? L.map(p => { const ok = ids.has(p.member_id); return `<div class="row" data-n="${esc(norm(p.first_name + ' ' + p.last_name))}"><span>${esc(p.first_name)} ${esc(p.last_name)}</span><span style="display:flex;gap:6px">${ok ? `<span class="tag" style="background:#15803d">Payé ✓</span><button class="b sm" style="--c:#4b5563;--d:#1f2937;margin:0" onclick="spUnpay(${x.id},'${p.member_id}')" aria-label="Annuler">↺</button>` : `${btnS('Valider', `spPay(${x.id},'${p.member_id}')`, 'green')}<button class="b sm" style="--c:#dc2626;--d:#7f1d1d;margin:0" onclick="rappeler('${p.member_id}')" aria-label="Rappeler">${ico('bell')}</button>`}</span></div>`; }).join('') : '';
+    return `<div class="c"><div class="m"><b style="font-size:16px">${esc(x.titre)}</b><span class="tag" style="background:${x.ouverte ? '#c2410c' : '#4b5563'}">${x.ouverte ? 'En cours' : 'Clôturée'}</span></div>
+      <div class="s" style="margin-top:4px">${num(x.montant)} FCFA par membre${x.date_limite ? ' · avant le ' + dfr(x.date_limite) : ''}</div><div class="s" style="color:#fde68a">Collecté : ${fcfa(k * x.montant)} · suivi à part, n’entre pas dans la caisse</div>
+      <div class="bar" style="background:rgba(255,255,255,.08);margin-top:10px"><i style="width:${Math.round(k * 100 / n)}%;background:#22c55e"></i></div><div class="s" style="margin-top:4px">${k} / ${L.length} membres ont cotisé</div>
+      ${rows ? `<input class="f" type="search" placeholder="Rechercher un membre" oninput="const q=norm(this.value).trim();this.parentNode.querySelectorAll('[data-n]').forEach(e=>e.style.display=!q||e.dataset.n.includes(q)?'':'none')"><div style="max-height:420px;overflow:auto;margin-top:6px">${rows}</div>` : ''}
+      <div style="margin-top:12px">${x.ouverte ? btnS('Clôturer cette cotisation', `spClose(${x.id},false)`, 'gray') : btnS('Rouvrir', `spClose(${x.id},true)`, 'gray')}</div></div>`; }).join('');
+  return form + blocs;
+}
+async function spNew(e) {
+  e.preventDefault(); const f = new FormData(e.target), titre = f.get('titre').trim(), montant = Number(f.get('montant')), lim = f.get('limite') || null;
+  const { error } = await SB.from('amd_cotis_speciales').insert({ titre, montant, date_limite: lim });
+  if (error) { alert(error.message); return; }
+  if (f.get('notif')) { const r = await notifSend({ titre: 'Nouvelle cotisation : ' + titre, message: `${num(montant)} FCFA par membre${lim ? ', avant le ' + dfr(lim) : ''}.`, cible: 'tous' }); if (r.error) alert('Cotisation créée, mais la notification n’a pas pu partir : ' + r.error); }
+  fill();
+}
+async function spPay(id, mid) { const { error } = await SB.from('amd_cotis_paiements').insert({ cotisation_id: id, member_id: mid }); if (error && !/duplicate|unique/i.test(error.message)) alert(error.message); fill(); }
+async function spUnpay(id, mid) { if (!confirm('Annuler ce paiement ?')) return; const { error } = await SB.from('amd_cotis_paiements').delete().eq('cotisation_id', id).eq('member_id', mid); if (error) alert(error.message); fill(); }
+async function spClose(id, open) {
+  if (!confirm(open ? 'Rouvrir cette cotisation ?' : 'Clôturer cette cotisation ? Elle disparaîtra de l’accueil des membres.')) return;
+  const { error } = await SB.from('amd_cotis_speciales').update({ ouverte: open, cloturee_le: open ? null : new Date().toISOString() }).eq('id', id); if (error) alert(error.message); fill();
+}
+async function rappeler(mid) {
+  const [{ data: ov }] = await Promise.all([SB.rpc('members_overview', { y: YEAR }), loadSpeciales()]);
+  const p = (ov || []).find(x => x.member_id === mid); if (!p) return;
+  const items = (p.t1 ? [] : ['t1']).concat(p.t2 ? [] : ['t2']).concat(SP.list.filter(x => x.ouverte && !SP.pay.some(y => y.cotisation_id === x.id && y.member_id === mid)).map(x => 'sp:' + x.id));
+  const nom = p.first_name + ' ' + p.last_name;
+  if (!items.length) { alert(nom + ' est à jour.'); return; }
+  const txt = items.map(it => it[0] === 't' ? 'tranche ' + it[1] : (SP.list.find(x => 'sp:' + x.id === it) || {}).titre).join(', ');
+  if (!confirm(`Envoyer un rappel personnel à ${nom} ?\nIl lui reste : ${txt}.\nLe rappel sera épinglé sur son accueil jusqu’au paiement.`)) return;
+  const { error } = await SB.from('amd_rappels').insert({ member_id: mid, items, annee: YEAR });
+  if (error) { alert(error.message); return; }
+  const r = await notifSend({ titre: 'Rappel de cotisation', message: `Bonjour ${p.first_name}, il te reste à payer : ${txt}.`, cible: 'selection', ids: [mid] });
+  alert(r.error ? 'Rappel épinglé sur son accueil, mais la notification n’a pas pu partir : ' + r.error : `Rappel envoyé à ${nom}.`);
+}
+async function renameMember(id) {
+  const p = MB[id]; if (!p) return;
+  const fn = prompt('Prénom', p.first_name); if (fn === null) return;
+  const ln = prompt('Nom (tu peux ajouter un numéro, ex. : Sarr N°1)', p.last_name); if (ln === null) return;
+  if (!fn.trim() || !ln.trim()) { alert('Le prénom et le nom ne peuvent pas être vides.'); return; }
+  const { data, error } = await SB.from('profiles').update({ first_name: fn.trim(), last_name: ln.trim() }).eq('id', id).select();
+  if (error || !data.length) alert(error ? error.message : 'Modification impossible.'); fill();
+}
+async function purge(id) {
+  const p = MB[id], nm = p ? p.first_name + ' ' + p.last_name : 'ce compte';
+  if (!confirm(`Supprimer définitivement ${nm} ?\nSon compte et tout son historique (tranches, événements) disparaîtront. Cette action est irréversible.`)) return;
+  const { error } = await SB.rpc('purge_account', { uid: id });
+  if (error) alert(error.message + ' (le fichier 8-suppression-definitive.sql a-t-il été exécuté ?)'); fill();
+}
+function setBadges() {
+  const b = $('#bd-adm'); if (b) { b.textContent = PENDING; b.style.display = PENDING ? 'flex' : 'none'; }
+  const t = $('#tl-req'); if (t) { t.textContent = PENDING; t.style.display = PENDING ? 'grid' : 'none'; }
+}
+async function refreshPending() {
+  if (!me || me.status !== 'active' || !isAdm()) return;
+  const { count } = await SB.from('profiles').select('id', { count: 'exact', head: true }).eq('status', 'pending');
+  PENDING = count || 0; setBadges();
+}
+setInterval(refreshPending, 60000);
+document.addEventListener('visibilitychange', () => { if (!document.hidden) refreshPending(); });
+
+/* =====================================================================
+   NOTIFICATIONS SUR LE TÉLÉPHONE
+   ===================================================================== */
+const VAPID_PUBLIC = 'BKjJEMKwuNAQuEPLYEUSLXs4nLi-nIUjmeDqD6A7ai8vcmG9Udt623ugfEWnGleu_nS5mKiJx3KqPy9hG_Lfasc';
+const PUSH = { ok: 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window, sub: null, ready: false };
+const IOS = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+const STANDALONE = matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+const lsGet = k => { try { return localStorage.getItem(k); } catch (_) { return null; } };
+const lsSet = (k, v) => { try { localStorage.setItem(k, v); } catch (_) {} };
+const u8 = s => { s = s.replace(/-/g, '+').replace(/_/g, '/'); s += '='.repeat((4 - s.length % 4) % 4); return Uint8Array.from(atob(s), c => c.charCodeAt(0)); };
+const device = () => { const u = navigator.userAgent; return (/android/i.test(u) ? 'Android' : IOS ? 'iPhone/iPad' : /windows/i.test(u) ? 'Windows' : /mac/i.test(u) ? 'Mac' : 'Appareil') + ' · ' + (/edg/i.test(u) ? 'Edge' : /samsungbrowser/i.test(u) ? 'Samsung' : /firefox/i.test(u) ? 'Firefox' : /chrome|crios/i.test(u) ? 'Chrome' : /safari/i.test(u) ? 'Safari' : 'Navigateur'); };
+async function pushSave(sub) {
+  const j = sub.toJSON();
+  const { error } = await SB.rpc('amd_push_enregistrer', { p_endpoint: j.endpoint, p_p256dh: j.keys.p256dh, p_auth: j.keys.auth, p_appareil: device() });
+  return error;
+}
+async function pushInit() {
+  if (!PUSH.ok) { PUSH.ready = true; return pushPaint(); }
+  try {
+    const reg = await Promise.race([navigator.serviceWorker.ready, new Promise((_, no) => setTimeout(() => no(new Error('sw')), 8000))]);
+    PUSH.sub = await reg.pushManager.getSubscription();
+    // Ce téléphone est relié au membre connecté (utile après une reconnexion)
+    if (PUSH.sub && Notification.permission === 'granted') await pushSave(PUSH.sub);
+    else if (PUSH.sub) PUSH.sub = null;
+  } catch (_) {}
+  PUSH.ready = true; pushPaint();
+}
+async function pushEnable() {
+  const box = $('#pushgate #pushmsg') || $('#pushmsg'); const say = (t, ok) => { if (box) box.innerHTML = `<div class="${ok ? 'ok' : 'err'}">${t}</div>`; };
+  try {
+    const perm = await Notification.requestPermission();
+    if (perm !== 'granted') { say('Notifications refusées. Pour les autoriser : touche le cadenas à côté de l’adresse → Autorisations → Notifications → Autoriser.'); return pushPaint(); }
+    const reg = await navigator.serviceWorker.ready;
+    const sub = await reg.pushManager.getSubscription() || await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: u8(VAPID_PUBLIC) });
+    const err = await pushSave(sub);
+    if (err) { say('Enregistrement impossible : ' + esc(err.message) + ' (le fichier notifications-push.sql a-t-il été exécuté ?)'); return; }
+    PUSH.sub = sub; pushPaint(); const m = $('#pushmsg'); if (m) m.innerHTML = '<div class="ok">✅ Notifications activées sur ce téléphone.</div>';
+  } catch (e) { say('Activation impossible sur ce navigateur : ' + esc(e.message || e)); }
+}
+async function pushDisable() {
+  if (!PUSH.sub) return;
+  await SB.rpc('amd_push_retirer', { p_endpoint: PUSH.sub.endpoint }).catch(() => {});
+  try { await PUSH.sub.unsubscribe(); } catch (_) {}
+  PUSH.sub = null; pushPaint();
+}
+async function notifSend(body) {
+  try {
+    const { data, error } = await SB.functions.invoke('envoyer-notification', { body });
+    if (error) {
+      let m = error.message || 'Service indisponible', st = error.context && error.context.status;
+      try { const j = await error.context.json(); m = (j && (j.error || j.message || j.msg)) || m; } catch (_) {}
+      if (st === 404 || /not found/i.test(m)) return { error: 'Fonction « envoyer-notification » introuvable : vérifie qu’elle est déployée avec exactement ce nom (étape 3 du guide).' };
+      if (st === 401 || /jwt/i.test(m)) return { error: 'Accès refusé par Supabase (' + m + '). Dans la fonction « envoyer-notification », désactive « Verify JWT » puis réessaie.' };
+      if (/Failed to send|fetch/i.test(m)) return { error: 'Impossible de joindre la fonction « envoyer-notification » : elle n’est pas encore déployée, ou elle a planté au démarrage (voir Supabase > Edge Functions > envoyer-notification > Logs). Détail : ' + m };
+      return { error: m + (st ? ' (code ' + st + ')' : '') };
+    }
+    return data || { error: 'Réponse vide' };
+  } catch (e) { return { error: String(e.message || e) }; }
+}
+async function pushTest() {
+  const m = $('#pushmsg'); if (m) m.innerHTML = '<div class="s">Envoi du test…</div>';
+  const r = await notifSend({ action: 'test' });
+  if (m) m.innerHTML = r.error ? `<div class="err">${esc(r.error)}</div>` : `<div class="ok">Test envoyé${r.envoyes ? '' : ' mais aucun téléphone n’a répondu'} : la notification doit arriver dans quelques secondes.</div>`;
+}
+function pushState() {
+  if (!PUSH.ok) return IOS && !STANDALONE ? 'ios' : 'non';
+  if (Notification.permission === 'denied') return 'refus';
+  return PUSH.sub ? 'on' : 'off';
+}
+function pushPaint() {
+  const st = pushState(), box = $('#pushbox'), home = $('#pushhome');
+  const IOS_TXT = 'Sur iPhone, les notifications marchent seulement depuis l’icône A.M.D : touche <b>Partager</b> ⬆️ puis <b>Sur l’écran d’accueil</b>, ouvre A.M.D depuis cette icône et reviens ici.';
+  if (box) {
+    const body = {
+      on: `<div class="pst"><i>🔔</i><div><b>Notifications activées</b><div class="s" style="margin-top:4px">Ce téléphone sonnera pour les annonces, rappels et messages des administrateurs.</div></div></div><div class="g2" style="margin-top:4px">${btnS('Tester', 'pushTest()', 'blue')}${btnS('Désactiver', 'pushDisable()', 'gray')}</div>`,
+      off: `<div class="pst"><i>🔕</i><div><b>Notifications désactivées</b><div class="s" style="margin-top:4px">Active-les pour être prévenu des annonces et rappels de l’amicale, même application fermée.</div></div></div>${btn('🔔 Activer les notifications', 'pushEnable()', 'green')}`,
+      refus: `<div class="pst"><i>🚫</i><div><b>Notifications bloquées</b><div class="s" style="margin-top:4px">Tu les as refusées sur ce téléphone. Pour les autoriser : touche le cadenas à côté de l’adresse (ou les paramètres de l’application) → <b>Autorisations</b> → <b>Notifications</b> → <b>Autoriser</b>, puis actualise.</div></div></div>`,
+      ios: `<div class="pst"><i>📱</i><div><b>Notifications sur iPhone</b><div class="s" style="margin-top:4px">${IOS_TXT}</div></div></div>`,
+      non: `<div class="pst"><i>⚠️</i><div><b>Notifications indisponibles</b><div class="s" style="margin-top:4px">Ce navigateur ne gère pas les notifications. Ouvre A.M.D avec Google Chrome.</div></div></div>`
+    }[st];
+    box.innerHTML = `<div class="pbx">${PUSH.ready || !PUSH.ok ? body : '<div class="s">Vérification des notifications…</div>'}<div id="pushmsg"></div></div>`;
+  }
+  if (home) {
+    // « Plus tard » : la proposition revient tous les 3 jours
+    const later = Number(lsGet('amd_push_plustard') || 0), show = !BR.notifOblig && PUSH.ready && (st === 'off' || st === 'ios') && Date.now() - later > 3 * 864e5;
+    home.innerHTML = show ? `<div class="c" style="background:linear-gradient(135deg,#a16207,#713f12)"><div class="pst"><i>🔔</i><div><b>Ne rate plus aucune annonce</b><div style="font-size:14px;color:#fef3c7;margin-top:6px;line-height:1.5">${st === 'ios' ? IOS_TXT : 'Active les notifications : ton téléphone sonnera à chaque annonce ou rappel de l’amicale.'}</div></div></div>
+      <div class="g2">${st === 'off' ? btnS('Activer', 'pushEnable()', 'green') : ''}${btnS('Plus tard', "lsSet('amd_push_plustard',String(Date.now()));pushPaint()", 'gray')}</div><div id="pushmsg"></div></div>` : '';
+  }
+  pushGate();
+}
+// En ouvrant A.M.D, la pastille de l'icône est remise à zéro (les notifications restent dans le volet du téléphone)
+const pastilleZero = () => { try { if (navigator.clearAppBadge) navigator.clearAppBadge(); if (window.caches) caches.open('amd-badge').then(c => c.put('n', new Response('0'))).catch(() => {}); } catch (_) {} };
+pastilleZero(); document.addEventListener('visibilitychange', () => { if (!document.hidden) pastilleZero(); });
+/* ---------- Notifications affichées sur l'accueil jusqu'à ce que le membre touche « Vu » ---------- */
+let NOTIFS = [];
+async function notifLoad() {
+  const box = $('#notifbox'); if (!box) return;
+  const { data, error } = await SB.rpc('amd_mes_notifications');
+  if (error) { box.innerHTML = ''; return; }
+  NOTIFS = data || []; notifPaint();
+}
+function notifPaint() {
+  const box = $('#notifbox'); if (!box) return;
+  if (!NOTIFS.length) { box.innerHTML = page === 'home' ? '<div class="c s" style="font-size:14px">✓ Aucune nouvelle annonce.</div>' : ''; return; }
+  const quand = d => { const x = new Date(d); return x.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }) + ' à ' + x.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }); };
+  box.innerHTML = `<div style="display:flex;flex-direction:column;gap:14px">${NOTIFS.length > 1 ? `<div class="m" style="padding:0 4px"><b>🔔 ${NOTIFS.length} nouvelles notifications</b><button class="b sm" style="--c:#4b5563;--d:#1f2937;min-height:38px;margin:0" onclick="notifVu(null)">Tout marquer vu</button></div>` : ''}
+  ${NOTIFS.map(n => `<div class="c nf"><div class="nt"><i>🔔</i><div style="min-width:0;flex:1"><div style="font-weight:800;font-size:16px">${esc(n.titre)}</div><div class="nb">${esc(n.message)}</div>
+    <div class="s" style="margin-top:8px;color:#c7d2fe">${quand(n.created_at)}${n.envoye_par_nom ? ' · ' + esc(n.envoye_par_nom) : ''}</div></div></div>
+    <div class="${n.page && TITRES[n.page] ? 'g2' : ''}" style="${n.page && TITRES[n.page] ? '' : 'display:grid;margin-top:12px'}">${btnS('✓ Vu', `notifVu(${Number(n.id)})`, 'green')}${n.page && TITRES[n.page] ? btnS('Ouvrir', `notifVu(${Number(n.id)},'${n.page}')`, 'blue') : ''}</div></div>`).join('')}</div>`;
+}
+async function notifVu(id, aller) {
+  NOTIFS = id === null ? [] : NOTIFS.filter(n => n.id !== id); notifPaint();
+  await SB.rpc('amd_notif_vu', { p_id: id });
+  if (aller) go(aller);
+}
+// Une notification arrive pendant que A.M.D est ouverte, ou on revient sur A.M.D : on rafraîchit l'accueil
+if ('serviceWorker' in navigator) navigator.serviceWorker.addEventListener('message', e => { if (e.data && e.data.amdNotif && me && page === 'home') notifLoad(); });
+document.addEventListener('visibilitychange', () => { if (!document.hidden && me && me.status === 'active' && page === 'home') notifLoad(); });
+
+/* ---------- Notifications obligatoires : écran bloquant tant que ce téléphone ne les a pas activées ---------- */
+function pushGate() {
+  const g = $('#pushgate'); if (!g) return;
+  const st = pushState();
+  const need = BR.notifOblig && me && me.status === 'active' && PUSH.ready && ['off', 'refus', 'ios'].includes(st);
+  if (!need) { g.innerHTML = ''; g.className = ''; return; }
+  const corps = {
+    off: `<div style="font-size:15px;line-height:1.6">Pour utiliser A.M.D, tu dois activer les notifications sur ce téléphone. C'est ainsi que l'amicale te prévient des <b>annonces</b>, <b>rappels</b> et <b>réunions</b>.</div>
+      <div class="s" style="margin-top:10px">Touche le bouton ci-dessous, puis <b>Autoriser</b> dans la fenêtre du téléphone.</div>`,
+    refus: `<div style="font-size:15px;line-height:1.6">Les notifications sont <b>bloquées</b> sur ce téléphone. Elles sont obligatoires pour utiliser A.M.D.</div>
+      <div class="s" style="margin-top:10px;line-height:1.6"><b>Android :</b> appui long sur l'icône A.M.D → Infos sur l'appli → Notifications → Autoriser.<br>Ou dans Chrome : cadenas à côté de l'adresse → Autorisations → Notifications → Autoriser.<br><b>iPhone :</b> Réglages → Notifications → A.M.D → Autoriser les notifications.<br>Puis touche « J'ai autorisé ».</div>`,
+    ios: `<div style="font-size:15px;line-height:1.6">Pour utiliser A.M.D sur iPhone, il faut l'installer sur l'écran d'accueil afin de recevoir les notifications de l'amicale.</div>
+      <div class="s" style="margin-top:10px;line-height:1.6">1. Touche <b>Partager</b> ⬆️ en bas de Safari.<br>2. Choisis <b>Sur l'écran d'accueil</b>, puis <b>Ajouter</b>.<br>3. Ouvre A.M.D depuis la nouvelle icône et active les notifications.</div>`
+  }[st];
+  const bout = st === 'off' ? btn('🔔 Activer les notifications', 'pushEnable()', 'green') : st === 'refus' ? btn("J'ai autorisé", 'location.reload()', 'green') : '';
+  g.className = 'gate';
+  g.innerHTML = `<div class="ctr"><div class="big">${logo()}</div><div style="font-weight:800;font-size:17px">${esc(BR.name)}</div>
+    <div class="c" style="background:linear-gradient(135deg,#a16207,#713f12)"><div style="font-weight:800;font-size:19px;margin-bottom:10px">🔔 Notifications obligatoires</div>${corps}</div>
+    ${bout}<div id="pushmsg"></div>${btn('Se déconnecter', 'logout()', 'gray')}<div class="s">En cas de difficulté, contacte un administrateur de l'amicale.</div><div class="ft">${FOOT}</div></div>`;
+}
+
+if ('serviceWorker' in navigator) navigator.serviceWorker.addEventListener('message', e => { if (e.data && e.data.amdGoto && me && TITRES[e.data.amdGoto]) go(e.data.amdGoto); });
+
+/* ---------- Page administrateur : envoyer une notification ---------- */
+let NM = [];
+async function notifyV() {
+  const [{ data: mb, error }, { data: hist }] = await Promise.all([SB.rpc('amd_push_membres'), SB.rpc('amd_push_historique')]);
+  if (error) return `<div class="err">Fonction indisponible : exécute d’abord le fichier notifications-push.sql dans Supabase. (${esc(error.message)})</div>`;
+  NM = mb || [];
+  const on = NM.filter(m => m.nb_appareils > 0).length;
+  const list = NM.map(m => `<label><input type="checkbox" name="ids" value="${esc(m.id)}"><span style="flex:1;min-width:0">${esc(m.first_name)} ${esc(m.last_name)}<span class="s" style="display:block">${m.nb_appareils ? '🔔 ' + m.nb_appareils + ' téléphone' + (m.nb_appareils > 1 ? 's' : '') : '🔕 notifications non activées'}</span></span></label>`).join('');
+  const hl = (hist || []).map(h => `<div class="row"><div style="min-width:0"><div style="font-weight:700">${esc(h.titre)}</div><div class="s" style="white-space:pre-wrap">${esc(h.message)}</div><div class="s" style="margin-top:4px">${new Date(h.created_at).toLocaleString('fr-FR')} · ${esc(h.envoye_par_nom || '')} · ${h.nb_ok}/${h.nb_appareils} téléphone(s) · 👁 vu par ${h.nb_vus ?? 0}/${h.nb_membres} · ${{ tous: 'Tous les membres', admins: 'Administrateurs', selection: h.nb_membres + ' membre(s) choisi(s)' }[h.cible] || esc(h.cible)}</div></div></div>`).join('');
+  return `<div class="c" style="background:linear-gradient(135deg,#1e3a8a,#2563eb)"><div style="font-size:13px;color:#dbeafe">Membres joignables par notification</div><div style="font-size:28px;font-weight:800;margin-top:4px">${on} / ${NM.length}</div><div style="font-size:13px;color:#dbeafe;margin-top:4px">Les autres doivent ouvrir A.M.D sur leur téléphone et toucher « Activer les notifications ».</div></div>
+  ${NM.length - on ? `<details class="c"><summary style="font-weight:700;cursor:pointer">🔕 ${NM.length - on} membre(s) sans notifications</summary><div style="margin-top:8px">${NM.filter(m => !m.nb_appareils).map(m => `<div class="row"><div>${esc(m.first_name)} ${esc(m.last_name)}<div class="s">${esc(m.phone || '')}</div></div></div>`).join('')}</div></details>` : ''}
+  <form class="c" onsubmit="notifyGo(event)"><div style="font-weight:700;font-size:16px">Nouveau message</div>
+  <label class="s" style="display:block;margin-top:12px">Titre<input class="f" name="titre" required maxlength="80" placeholder="Ex. : Réunion de l’amicale"></label>
+  <label class="s" style="display:block;margin-top:12px">Message<textarea class="f" name="message" rows="4" required maxlength="500" placeholder="Ex. : Réunion samedi à 16h au siège. Présence obligatoire."></textarea></label>
+  <label class="s" style="display:block;margin-top:12px">Destinataires<select class="f" name="cible" onchange="$('#ml').style.display=this.value==='selection'?'block':'none'"><option value="tous">Tous les membres</option><option value="admins">Administrateurs seulement</option><option value="selection">Choisir des membres</option></select></label>
+  <div id="ml" style="display:none"><input class="f" type="search" placeholder="Rechercher un membre" oninput="const q=norm(this.value).trim();document.querySelectorAll('#ml label').forEach(l=>l.style.display=norm(l.textContent).includes(q)?'':'none')"><div class="mlist">${list || '<div class="s" style="padding:12px">Aucun membre actif.</div>'}</div></div>
+  <button class="b" style="width:100%;margin-top:16px;--c:#facc15;--d:#a16207;color:#1c1917;text-shadow:none">📣 Envoyer la notification</button><div id="nres"></div></form>
+  <div class="c" style="padding-top:8px;padding-bottom:8px"><div style="font-weight:700;padding:8px 0">Derniers envois</div>${hl || '<div class="s" style="padding-bottom:8px">Aucune notification envoyée pour le moment.</div>'}</div>`;
+}
+async function notifyGo(e) {
+  e.preventDefault(); const f = new FormData(e.target), bt = e.target.querySelector('button'), out = $('#nres');
+  const body = { titre: f.get('titre').trim(), message: f.get('message').trim(), cible: f.get('cible'), ids: f.getAll('ids') };
+  if (body.cible === 'selection' && !body.ids.length) { out.innerHTML = '<div class="err" style="margin-top:10px">Coche au moins un membre.</div>'; return; }
+  const qui = body.cible === 'tous' ? 'tous les membres' : body.cible === 'admins' ? 'les administrateurs' : body.ids.length + ' membre(s)';
+  if (!confirm(`Envoyer « ${body.titre} » à ${qui} ?`)) return;
+  bt.disabled = true; out.innerHTML = '<div class="s" style="margin-top:10px">Envoi en cours…</div>';
+  const r = await notifSend(body); bt.disabled = false;
+  if (r.error) { out.innerHTML = `<div class="err" style="margin-top:10px">${esc(r.error)}</div>`; return; }
+  const sans = r.membres - r.membres_joignables;
+  out.innerHTML = `<div class="ok" style="margin-top:10px">✅ Envoyée à ${r.envoyes} téléphone(s) (${r.membres_joignables} membre(s)).${sans > 0 ? `<br>${sans} membre(s) n’ont pas encore activé les notifications.` : ''}${r.echecs ? `<br>${r.echecs} téléphone(s) n’ont pas répondu (notifications retirées ou appli désinstallée).` : ''}</div>`;
+  e.target.reset(); $('#ml').style.display = 'none';
+  setTimeout(async () => { if (page === 'notify') { const c = $('#c'); const keep = out.innerHTML; c.innerHTML = await notifyV(); const n = $('#nres'); if (n) n.innerHTML = keep; } }, 600);
+}
+
+SB.auth.onAuthStateChange(() => {});
+boot();
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
+</script>
+</body>
+</html>
