@@ -1,7 +1,7 @@
 // A.M.D — service worker minimal : l'application reste installable et s'ouvre même si le réseau est lent.
 // Réseau d'abord : les données et mises à jour sont toujours récentes ; le cache ne sert qu'en secours.
 // + Notifications : affiche les messages envoyés par les administrateurs, même application fermée.
-const CACHE = 'amd-v4', BADGE = 'amd-badge';
+const CACHE = 'amd-v5', BADGE = 'amd-badge';
 self.addEventListener('install', e => { self.skipWaiting(); });
 self.addEventListener('activate', e => {
   e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== CACHE && k !== BADGE).map(k => caches.delete(k)))).then(() => self.clients.claim()));
@@ -44,7 +44,10 @@ self.addEventListener('push', e => {
     requireInteraction: true,    // reste affichée jusqu'à ce que le membre la touche
     vibrate: [250, 120, 250, 120, 400],
     data: { url }
-  }).then(() => majPastille(1)));
+  }).then(() => majPastille(1))
+    // Si A.M.D est ouverte, l'accueil affiche tout de suite la nouvelle notification
+    .then(() => self.clients.matchAll({ type: 'window', includeUncontrolled: true }))
+    .then(list => list.forEach(c => c.postMessage({ amdNotif: 1 }))));
 });
 
 self.addEventListener('notificationclick', e => {

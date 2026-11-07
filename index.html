@@ -60,6 +60,12 @@ select.f{appearance:auto}
 .dr .sp{margin-top:auto;padding:12px 20px 0;font-size:11px;color:var(--mu)}
 .ctr{min-height:100vh;display:flex;flex-direction:column;justify-content:center;gap:14px;max-width:420px;margin:0 auto;padding:28px 20px;text-align:center}
 .big{width:96px;height:96px;margin:0 auto;border-radius:50%;overflow:hidden;background:linear-gradient(135deg,#facc15,#c2410c);display:flex;align-items:center;justify-content:center;font-weight:800;color:#1c1917;box-shadow:0 0 0 4px rgba(255,255,255,.12),0 14px 30px rgba(0,0,0,.4)}
+.gate{position:fixed;inset:0;z-index:60;overflow:auto;background:radial-gradient(800px 480px at 0% -8%,rgba(37,99,235,.28),transparent 60%),var(--bg)}
+.gate .ctr{min-height:100%}.gate .c{text-align:left}
+.nf{background:linear-gradient(135deg,#1e3a8a,#312e81);border-color:rgba(147,197,253,.25)}
+.nf .nt{display:flex;gap:10px;align-items:flex-start}.nf .nt i{font-style:normal;font-size:22px;line-height:1.1}
+.nf .nb{font-size:14px;line-height:1.5;margin-top:6px;white-space:pre-wrap;color:#e0e7ff}
+.nf .g2{margin-top:12px}.nf .b{margin-bottom:0}
 .pbx{display:flex;flex-direction:column;gap:10px}.pbx .b{margin-bottom:0}
 .pst{display:flex;gap:12px;align-items:flex-start}.pst i{font-style:normal;font-size:26px;line-height:1}
 .chk{display:flex;align-items:center;gap:10px;margin-top:12px;font-size:14px;cursor:pointer}.chk input{width:20px;height:20px;accent-color:#facc15;flex:none}
@@ -99,8 +105,8 @@ const IC = { home: 'M3 11l9-8 9 8v10a1 1 0 01-1 1h-5v-6H9v6H4a1 1 0 01-1-1z', us
 const ico = n => `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${IC[n]}"/></svg>`;
 
 async function loadBrand() {
-  const { data } = await SB.from('amicale_settings').select('key,value').in('key', ['amicale_name', 'amicale_logo']);
-  (data || []).forEach(r => { if (r.key === 'amicale_name' && r.value) BR.name = r.value; if (r.key === 'amicale_logo') BR.logo = r.value || 'logo.png'; });
+  const { data } = await SB.from('amicale_settings').select('key,value').in('key', ['amicale_name', 'amicale_logo', 'notif_obligatoire']);
+  (data || []).forEach(r => { if (r.key === 'amicale_name' && r.value) BR.name = r.value; if (r.key === 'amicale_logo') BR.logo = r.value || 'logo.png'; if (r.key === 'notif_obligatoire') BR.notifOblig = r.value === 'oui'; });
   document.title = BR.name;
 }
 async function boot() {
@@ -181,7 +187,7 @@ function render() {
   <nav class="dr ${menu ? 'on' : ''}"><div class="dh"><i class="lo" style="width:46px;height:46px">${logo()}</i><b>${esc(BR.name)}</b></div>
   ${item('home', 'Accueil', 'home')}${item('profile', 'Mon profil', 'user')}${item('honneur', "Page d'honneur", 'star')}${item('rappel', 'Rappel important', 'bell')}${item('annonce', 'Annonces', 'mega')}${item('statuts', 'Statuts', 'doc')}${item('reglement', 'Règlement intérieur', 'doc')}${item('budget', 'État du budget', 'wallet')}${item('situation', 'Situation des membres', 'users')}${item('global', 'Situation globale', 'chart')}${item('image', "Images de l'amicale", 'image')}${item('morts', 'À nos morts', 'heart')}
   ${isAdm() ? `<button class="i ${page === 'requests' ? 'a' : ''}" onclick="go('requests')">${ico('inbox')}Demandes d'inscription<span class="bdg" id="bd-req"></span></button>` + item('members', 'Membres', 'list') + item('notify', 'Envoyer une notification', 'bell') + item('settings', 'Paramètres', 'gear') : ''}
-  <button class="i" onclick="logout()">${ico('out')}Se déconnecter</button><div class="sp">${FOOT}</div></nav>`;
+  <button class="i" onclick="logout()">${ico('out')}Se déconnecter</button><div class="sp">${FOOT}</div></nav><div id="pushgate"></div>`;
   setBadges(); refreshPending(); fill();
 }
 
@@ -200,6 +206,7 @@ async function fill() {
   else h = await listV(['active', 'disabled', 'deleted'], false);
   if (c) c.innerHTML = h;
   pushPaint();
+  if (page === 'home') notifLoad();
 }
 
 const ST = { pending: ['En attente', '#c2410c'], rejected: ['Rejeté', '#b91c1c'], active: ['Actif', '#15803d'], disabled: ['Désactivé', '#4b5563'], deleted: ['Supprimé', '#b91c1c'] };
@@ -260,7 +267,7 @@ async function homeV() {
   const d = new Date(), pm = new Date(d.getFullYear(), d.getMonth() - 1, 1).toLocaleDateString('fr-FR', { month: 'short' });
   const rap = (ps || []).find(p => p.kind === 'rappel'), ann = (ps || []).filter(p => p.kind === 'annonce').slice(0, 2);
   return `<div style="padding:2px 4px"><div class="s">${d.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}</div><div style="font-size:28px;font-weight:800;letter-spacing:-.5px;margin-top:2px">${hello}, ${esc(me.first_name)}</div></div>
-  <div id="pushhome"></div>
+  <div id="pushhome"></div><div id="notifbox"></div>
   ${pend ? btn(ico('inbox') + pend + (pend > 1 ? ' demandes' : ' demande') + " d'inscription en attente", "go('requests')", 'or') : ''}
   <div class="c" style="background:linear-gradient(135deg,#15803d,#166534)"><div style="font-size:13px;color:#d1fae5">Somme globale disponible en caisse</div><div style="font-size:30px;font-weight:800;margin-top:6px">${fcfa((b.opening || 0) + b.entrees - b.depenses)}</div></div>
   <div class="g3">${stat('Membres actifs', n ?? 0, "go('situation')", 'blue')}${stat('Entrées ' + pm, num(b.prev_entrees), "go('budget')", 'green')}${stat('Dépenses ' + pm, num(b.prev_depenses), "go('budget')", 'red')}</div>
@@ -410,7 +417,15 @@ async function settingsV() {
   <label class="b sm" style="flex:1;cursor:pointer;--c:#2563eb;--d:#1e3a8a">Choisir un logo<input type="file" accept="image/*" hidden onchange="pickLogo(this)"></label></div>
   <label class="s" style="display:block;margin-top:14px">Nom de l'amicale<input class="f" name="name" value="${esc(BR.name)}" required maxlength="80"></label>
   <button class="b" style="width:100%;margin-top:16px;--c:#15803d;--d:#14532d">Enregistrer</button></form>
-  <div class="s" style="text-align:center">Le nom et le logo s'affichent en haut de toutes les pages et sur l'écran de connexion.</div>`;
+  <div class="s" style="text-align:center">Le nom et le logo s'affichent en haut de toutes les pages et sur l'écran de connexion.</div>
+  <div class="c"><div style="font-weight:700;font-size:16px">Notifications obligatoires</div>
+  <div class="s" style="margin-top:6px;line-height:1.5">Si c'est activé, un membre ne peut pas utiliser A.M.D tant qu'il n'a pas activé les notifications sur son téléphone.</div>
+  <div class="m" style="margin-top:12px"><span class="tag" style="background:${BR.notifOblig ? '#15803d' : '#4b5563'}">${BR.notifOblig ? 'Activé' : 'Désactivé'}</span>${btnS(BR.notifOblig ? 'Désactiver' : 'Activer', `setOblig(${!BR.notifOblig})`, BR.notifOblig ? 'gray' : 'green')}</div></div>`;
+}
+async function setOblig(on) {
+  const { data, error } = await SB.from('amicale_settings').update({ value: on ? 'oui' : 'non' }).eq('key', 'notif_obligatoire').select();
+  if (error || !data.length) { alert(error ? error.message : 'Réglage introuvable.'); return; }
+  BR.notifOblig = on; fill();
 }
 function pickLogo(inp) {
   const f = inp.files[0]; if (!f) return;
@@ -605,7 +620,7 @@ async function pushInit() {
   PUSH.ready = true; pushPaint();
 }
 async function pushEnable() {
-  const box = $('#pushmsg'); const say = (t, ok) => { if (box) box.innerHTML = `<div class="${ok ? 'ok' : 'err'}">${t}</div>`; };
+  const box = $('#pushgate #pushmsg') || $('#pushmsg'); const say = (t, ok) => { if (box) box.innerHTML = `<div class="${ok ? 'ok' : 'err'}">${t}</div>`; };
   try {
     const perm = await Notification.requestPermission();
     if (perm !== 'granted') { say('Notifications refusées. Pour les autoriser : touche le cadenas à côté de l’adresse → Autorisations → Notifications → Autoriser.'); return pushPaint(); }
@@ -660,14 +675,63 @@ function pushPaint() {
     box.innerHTML = `<div class="pbx">${PUSH.ready || !PUSH.ok ? body : '<div class="s">Vérification des notifications…</div>'}<div id="pushmsg"></div></div>`;
   }
   if (home) {
-    const show = PUSH.ready && (st === 'off' || st === 'ios') && lsGet('amd_push_plustard') !== '1';
+    // « Plus tard » : la proposition revient tous les 3 jours
+    const later = Number(lsGet('amd_push_plustard') || 0), show = !BR.notifOblig && PUSH.ready && (st === 'off' || st === 'ios') && Date.now() - later > 3 * 864e5;
     home.innerHTML = show ? `<div class="c" style="background:linear-gradient(135deg,#a16207,#713f12)"><div class="pst"><i>🔔</i><div><b>Ne rate plus aucune annonce</b><div style="font-size:14px;color:#fef3c7;margin-top:6px;line-height:1.5">${st === 'ios' ? IOS_TXT : 'Active les notifications : ton téléphone sonnera à chaque annonce ou rappel de l’amicale.'}</div></div></div>
-      <div class="g2">${st === 'off' ? btnS('Activer', 'pushEnable()', 'green') : ''}${btnS('Plus tard', "lsSet('amd_push_plustard','1');pushPaint()", 'gray')}</div><div id="pushmsg"></div></div>` : '';
+      <div class="g2">${st === 'off' ? btnS('Activer', 'pushEnable()', 'green') : ''}${btnS('Plus tard', "lsSet('amd_push_plustard',String(Date.now()));pushPaint()", 'gray')}</div><div id="pushmsg"></div></div>` : '';
   }
+  pushGate();
 }
 // En ouvrant A.M.D, la pastille de l'icône est remise à zéro (les notifications restent dans le volet du téléphone)
-const pastilleZero = () => { try { if (navigator.clearAppBadge) navigator.clearAppBadge(); if (window.caches) caches.open('amd-badge').then(c => c.put('n', new Response('0'))); } catch (_) {} };
+const pastilleZero = () => { try { if (navigator.clearAppBadge) navigator.clearAppBadge(); if (window.caches) caches.open('amd-badge').then(c => c.put('n', new Response('0'))).catch(() => {}); } catch (_) {} };
 pastilleZero(); document.addEventListener('visibilitychange', () => { if (!document.hidden) pastilleZero(); });
+/* ---------- Notifications affichées sur l'accueil jusqu'à ce que le membre touche « Vu » ---------- */
+let NOTIFS = [];
+async function notifLoad() {
+  const box = $('#notifbox'); if (!box) return;
+  const { data, error } = await SB.rpc('amd_mes_notifications');
+  if (error) { box.innerHTML = ''; return; }
+  NOTIFS = data || []; notifPaint();
+}
+function notifPaint() {
+  const box = $('#notifbox'); if (!box) return;
+  if (!NOTIFS.length) { box.innerHTML = ''; return; }
+  const quand = d => { const x = new Date(d); return x.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }) + ' à ' + x.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }); };
+  box.innerHTML = `<div style="display:flex;flex-direction:column;gap:14px">${NOTIFS.length > 1 ? `<div class="m" style="padding:0 4px"><b>🔔 ${NOTIFS.length} nouvelles notifications</b><button class="b sm" style="--c:#4b5563;--d:#1f2937;min-height:38px;margin:0" onclick="notifVu(null)">Tout marquer vu</button></div>` : ''}
+  ${NOTIFS.map(n => `<div class="c nf"><div class="nt"><i>🔔</i><div style="min-width:0;flex:1"><div style="font-weight:800;font-size:16px">${esc(n.titre)}</div><div class="nb">${esc(n.message)}</div>
+    <div class="s" style="margin-top:8px;color:#c7d2fe">${quand(n.created_at)}${n.envoye_par_nom ? ' · ' + esc(n.envoye_par_nom) : ''}</div></div></div>
+    <div class="${n.page && TITRES[n.page] ? 'g2' : ''}" style="${n.page && TITRES[n.page] ? '' : 'display:grid;margin-top:12px'}">${btnS('✓ Vu', `notifVu(${Number(n.id)})`, 'green')}${n.page && TITRES[n.page] ? btnS('Ouvrir', `notifVu(${Number(n.id)},'${n.page}')`, 'blue') : ''}</div></div>`).join('')}</div>`;
+}
+async function notifVu(id, aller) {
+  NOTIFS = id === null ? [] : NOTIFS.filter(n => n.id !== id); notifPaint();
+  await SB.rpc('amd_notif_vu', { p_id: id });
+  if (aller) go(aller);
+}
+// Une notification arrive pendant que A.M.D est ouverte, ou on revient sur A.M.D : on rafraîchit l'accueil
+if ('serviceWorker' in navigator) navigator.serviceWorker.addEventListener('message', e => { if (e.data && e.data.amdNotif && me && page === 'home') notifLoad(); });
+document.addEventListener('visibilitychange', () => { if (!document.hidden && me && me.status === 'active' && page === 'home') notifLoad(); });
+
+/* ---------- Notifications obligatoires : écran bloquant tant que ce téléphone ne les a pas activées ---------- */
+function pushGate() {
+  const g = $('#pushgate'); if (!g) return;
+  const st = pushState();
+  const need = BR.notifOblig && me && me.status === 'active' && PUSH.ready && ['off', 'refus', 'ios'].includes(st);
+  if (!need) { g.innerHTML = ''; g.className = ''; return; }
+  const corps = {
+    off: `<div style="font-size:15px;line-height:1.6">Pour utiliser A.M.D, tu dois activer les notifications sur ce téléphone. C'est ainsi que l'amicale te prévient des <b>annonces</b>, <b>rappels</b> et <b>réunions</b>.</div>
+      <div class="s" style="margin-top:10px">Touche le bouton ci-dessous, puis <b>Autoriser</b> dans la fenêtre du téléphone.</div>`,
+    refus: `<div style="font-size:15px;line-height:1.6">Les notifications sont <b>bloquées</b> sur ce téléphone. Elles sont obligatoires pour utiliser A.M.D.</div>
+      <div class="s" style="margin-top:10px;line-height:1.6"><b>Android :</b> appui long sur l'icône A.M.D → Infos sur l'appli → Notifications → Autoriser.<br>Ou dans Chrome : cadenas à côté de l'adresse → Autorisations → Notifications → Autoriser.<br><b>iPhone :</b> Réglages → Notifications → A.M.D → Autoriser les notifications.<br>Puis touche « J'ai autorisé ».</div>`,
+    ios: `<div style="font-size:15px;line-height:1.6">Pour utiliser A.M.D sur iPhone, il faut l'installer sur l'écran d'accueil afin de recevoir les notifications de l'amicale.</div>
+      <div class="s" style="margin-top:10px;line-height:1.6">1. Touche <b>Partager</b> ⬆️ en bas de Safari.<br>2. Choisis <b>Sur l'écran d'accueil</b>, puis <b>Ajouter</b>.<br>3. Ouvre A.M.D depuis la nouvelle icône et active les notifications.</div>`
+  }[st];
+  const bout = st === 'off' ? btn('🔔 Activer les notifications', 'pushEnable()', 'green') : st === 'refus' ? btn("J'ai autorisé", 'location.reload()', 'green') : '';
+  g.className = 'gate';
+  g.innerHTML = `<div class="ctr"><div class="big">${logo()}</div><div style="font-weight:800;font-size:17px">${esc(BR.name)}</div>
+    <div class="c" style="background:linear-gradient(135deg,#a16207,#713f12)"><div style="font-weight:800;font-size:19px;margin-bottom:10px">🔔 Notifications obligatoires</div>${corps}</div>
+    ${bout}<div id="pushmsg"></div>${btn('Se déconnecter', 'logout()', 'gray')}<div class="s">En cas de difficulté, contacte un administrateur de l'amicale.</div><div class="ft">${FOOT}</div></div>`;
+}
+
 if ('serviceWorker' in navigator) navigator.serviceWorker.addEventListener('message', e => { if (e.data && e.data.amdGoto && me && TITRES[e.data.amdGoto]) go(e.data.amdGoto); });
 
 /* ---------- Page administrateur : envoyer une notification ---------- */
@@ -678,8 +742,9 @@ async function notifyV() {
   NM = mb || [];
   const on = NM.filter(m => m.nb_appareils > 0).length;
   const list = NM.map(m => `<label><input type="checkbox" name="ids" value="${esc(m.id)}"><span style="flex:1;min-width:0">${esc(m.first_name)} ${esc(m.last_name)}<span class="s" style="display:block">${m.nb_appareils ? '🔔 ' + m.nb_appareils + ' téléphone' + (m.nb_appareils > 1 ? 's' : '') : '🔕 notifications non activées'}</span></span></label>`).join('');
-  const hl = (hist || []).map(h => `<div class="row"><div style="min-width:0"><div style="font-weight:700">${esc(h.titre)}</div><div class="s" style="white-space:pre-wrap">${esc(h.message)}</div><div class="s" style="margin-top:4px">${new Date(h.created_at).toLocaleString('fr-FR')} · ${esc(h.envoye_par_nom || '')} · ${h.nb_ok}/${h.nb_appareils} téléphone(s) · ${{ tous: 'Tous les membres', admins: 'Administrateurs', selection: h.nb_membres + ' membre(s) choisi(s)' }[h.cible] || esc(h.cible)}</div></div></div>`).join('');
+  const hl = (hist || []).map(h => `<div class="row"><div style="min-width:0"><div style="font-weight:700">${esc(h.titre)}</div><div class="s" style="white-space:pre-wrap">${esc(h.message)}</div><div class="s" style="margin-top:4px">${new Date(h.created_at).toLocaleString('fr-FR')} · ${esc(h.envoye_par_nom || '')} · ${h.nb_ok}/${h.nb_appareils} téléphone(s) · 👁 vu par ${h.nb_vus ?? 0}/${h.nb_membres} · ${{ tous: 'Tous les membres', admins: 'Administrateurs', selection: h.nb_membres + ' membre(s) choisi(s)' }[h.cible] || esc(h.cible)}</div></div></div>`).join('');
   return `<div class="c" style="background:linear-gradient(135deg,#1e3a8a,#2563eb)"><div style="font-size:13px;color:#dbeafe">Membres joignables par notification</div><div style="font-size:28px;font-weight:800;margin-top:4px">${on} / ${NM.length}</div><div style="font-size:13px;color:#dbeafe;margin-top:4px">Les autres doivent ouvrir A.M.D sur leur téléphone et toucher « Activer les notifications ».</div></div>
+  ${NM.length - on ? `<details class="c"><summary style="font-weight:700;cursor:pointer">🔕 ${NM.length - on} membre(s) sans notifications</summary><div style="margin-top:8px">${NM.filter(m => !m.nb_appareils).map(m => `<div class="row"><div>${esc(m.first_name)} ${esc(m.last_name)}<div class="s">${esc(m.phone || '')}</div></div></div>`).join('')}</div></details>` : ''}
   <form class="c" onsubmit="notifyGo(event)"><div style="font-weight:700;font-size:16px">Nouveau message</div>
   <label class="s" style="display:block;margin-top:12px">Titre<input class="f" name="titre" required maxlength="80" placeholder="Ex. : Réunion de l’amicale"></label>
   <label class="s" style="display:block;margin-top:12px">Message<textarea class="f" name="message" rows="4" required maxlength="500" placeholder="Ex. : Réunion samedi à 16h au siège. Présence obligatoire."></textarea></label>
