@@ -626,9 +626,12 @@ async function notifSend(body) {
   try {
     const { data, error } = await SB.functions.invoke('envoyer-notification', { body });
     if (error) {
-      let m = error.message || 'Service indisponible';
-      try { const j = await error.context.json(); if (j && j.error) m = j.error; } catch (_) {}
-      return { error: /fetch|Failed to send|404/i.test(m) ? 'service de notification introuvable (fonction « envoyer-notification » non déployée ?)' : m };
+      let m = error.message || 'Service indisponible', st = error.context && error.context.status;
+      try { const j = await error.context.json(); m = (j && (j.error || j.message || j.msg)) || m; } catch (_) {}
+      if (st === 404 || /not found/i.test(m)) return { error: 'Fonction « envoyer-notification » introuvable : vérifie qu’elle est déployée avec exactement ce nom (étape 3 du guide).' };
+      if (st === 401 || /jwt/i.test(m)) return { error: 'Accès refusé par Supabase (' + m + '). Dans la fonction « envoyer-notification », désactive « Verify JWT » puis réessaie.' };
+      if (/Failed to send|fetch/i.test(m)) return { error: 'Impossible de joindre la fonction « envoyer-notification » : elle n’est pas encore déployée, ou elle a planté au démarrage (voir Supabase > Edge Functions > envoyer-notification > Logs). Détail : ' + m };
+      return { error: m + (st ? ' (code ' + st + ')' : '') };
     }
     return data || { error: 'Réponse vide' };
   } catch (e) { return { error: String(e.message || e) }; }
@@ -662,6 +665,9 @@ function pushPaint() {
       <div class="g2">${st === 'off' ? btnS('Activer', 'pushEnable()', 'green') : ''}${btnS('Plus tard', "lsSet('amd_push_plustard','1');pushPaint()", 'gray')}</div><div id="pushmsg"></div></div>` : '';
   }
 }
+// En ouvrant A.M.D, la pastille de l'icône est remise à zéro (les notifications restent dans le volet du téléphone)
+const pastilleZero = () => { try { if (navigator.clearAppBadge) navigator.clearAppBadge(); } catch (_) {} };
+pastilleZero(); document.addEventListener('visibilitychange', () => { if (!document.hidden) pastilleZero(); });
 if ('serviceWorker' in navigator) navigator.serviceWorker.addEventListener('message', e => { if (e.data && e.data.amdGoto && me && TITRES[e.data.amdGoto]) go(e.data.amdGoto); });
 
 /* ---------- Page administrateur : envoyer une notification ---------- */
