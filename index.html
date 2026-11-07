@@ -15,7 +15,7 @@
 :root{--bg:#0b0d12;--tx:#f3f5fa;--mu:#9aa3b5;--bd:rgba(255,255,255,.08);--ln:rgba(255,255,255,.08)}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{margin:0;color:var(--tx);font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-text-size-adjust:100%;min-height:100vh;background:radial-gradient(800px 480px at 0% -8%,rgba(37,99,235,.28),transparent 60%),radial-gradient(700px 420px at 100% 0%,rgba(21,128,61,.22),transparent 60%),var(--bg);background-attachment:fixed}
-button,input,select{font-family:inherit}
+button,input,select,textarea{font-family:inherit}
 .top{position:sticky;top:0;z-index:5;height:64px;display:flex;align-items:center;gap:10px;padding:0 10px;background:rgba(14,17,24,.72);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-bottom:1px solid var(--bd)}
 .ic{width:44px;height:44px;border:0;background:rgba(255,255,255,.07);border-radius:14px;color:#fff;display:flex;align-items:center;justify-content:center;flex:none}
 .lg{display:flex;align-items:center;gap:10px;min-width:0}
@@ -60,6 +60,13 @@ select.f{appearance:auto}
 .dr .sp{margin-top:auto;padding:12px 20px 0;font-size:11px;color:var(--mu)}
 .ctr{min-height:100vh;display:flex;flex-direction:column;justify-content:center;gap:14px;max-width:420px;margin:0 auto;padding:28px 20px;text-align:center}
 .big{width:96px;height:96px;margin:0 auto;border-radius:50%;overflow:hidden;background:linear-gradient(135deg,#facc15,#c2410c);display:flex;align-items:center;justify-content:center;font-weight:800;color:#1c1917;box-shadow:0 0 0 4px rgba(255,255,255,.12),0 14px 30px rgba(0,0,0,.4)}
+.pbx{display:flex;flex-direction:column;gap:10px}.pbx .b{margin-bottom:0}
+.pst{display:flex;gap:12px;align-items:flex-start}.pst i{font-style:normal;font-size:26px;line-height:1}
+.chk{display:flex;align-items:center;gap:10px;margin-top:12px;font-size:14px;cursor:pointer}.chk input{width:20px;height:20px;accent-color:#facc15;flex:none}
+.mlist{max-height:340px;overflow:auto;margin-top:10px;border:1px solid var(--bd);border-radius:14px}
+.mlist label{display:flex;align-items:center;gap:10px;padding:10px 12px;border-bottom:1px solid var(--ln);font-size:14px;cursor:pointer}
+.mlist label:last-child{border-bottom:0}.mlist input{width:20px;height:20px;accent-color:#2563eb;flex:none}
+.ok{background:#14532d;color:#bbf7d0;border-radius:12px;padding:10px 12px;font-size:13px}
 .err{background:#7f1d1d;color:#fecaca;border-radius:12px;padding:10px 12px;font-size:13px}
 .left{text-align:left}
 .opt{display:flex;align-items:center;gap:12px;min-height:50px;padding:6px 0;border-bottom:1px solid var(--bd);font-size:14px}
@@ -105,7 +112,11 @@ async function boot() {
     me = data;
     if (!me) { await SB.auth.signOut(); msg = 'Compte introuvable. Crée un compte.'; }
   }
+  // Ouverture depuis une notification : ?p=annonce → page Annonces
+  const qp = new URLSearchParams(location.search).get('p');
+  if (qp) { if (me && TITRES[qp]) page = qp; history.replaceState(null, '', location.pathname); }
   render();
+  if (me && me.status === 'active') pushInit();
 }
 
 function authView() {
@@ -136,7 +147,7 @@ async function signup(e) {
   if (error) { msg = /registered|already/i.test(error.message) ? 'Ce numéro est déjà inscrit.' : error.message; return render(); }
   msg = ''; boot();
 }
-async function logout() { await SB.auth.signOut(); me = null; menu = false; page = 'home'; tab = 'in'; render(); }
+async function logout() { if (PUSH.sub) await SB.rpc('amd_push_retirer', { p_endpoint: PUSH.sub.endpoint }).catch(() => {}); PUSH.sub = null; await SB.auth.signOut(); me = null; menu = false; page = 'home'; tab = 'in'; render(); }
 
 function stateView(icon, titre, texte) {
   return `<div class="ctr"><div class="big">${logo()}</div><div style="font-weight:800;font-size:17px">${esc(BR.name)}</div>
@@ -144,7 +155,7 @@ function stateView(icon, titre, texte) {
   ${btn('Actualiser', 'boot()', 'blue')}${btn('Se déconnecter', 'logout()', 'gray')}<div class="ft">${FOOT}</div></div>`;
 }
 
-const TITRES = { settings: 'Paramètres', home: 'Accueil', profile: 'Mon profil', budget: 'État du budget', situation: 'Situation des membres', requests: "Demandes d'inscription", members: 'Membres' };
+const TITRES = { notify: 'Envoyer une notification', settings: 'Paramètres', home: 'Accueil', profile: 'Mon profil', budget: 'État du budget', situation: 'Situation des membres', requests: "Demandes d'inscription", members: 'Membres' };
 const stat = (l, v, fn, c) => `<button class="b stat" style="--c:${COL[c][0]};--d:${COL[c][1]}" onclick="${fn}"><span>${l}</span><b>${v}</b></button>`;
 Object.assign(IC, { star: 'M12 3l2.8 5.7 6.2.9-4.5 4.4 1 6.2L12 17.3 6.5 20.2l1-6.2L3 9.6l6.2-.9z', bell: 'M6 8a6 6 0 0112 0c0 7 3 9 3 9H3s3-2 3-9M10 21a2 2 0 004 0', doc: 'M7 3h8l4 4v14H7zM15 3v4h4M10 12h6M10 16h6', image: 'M4 5h16v14H4zM4 15l5-5 4 4 3-3 4 4M9 9h.01', cal: 'M4 6h16v14H4zM4 10h16M8 3v4M16 3v4', heart: 'M12 21s-8-5-8-11a4.5 4.5 0 018-2.8A4.5 4.5 0 0120 10c0 6-8 11-8 11z', mega: 'M3 11v3h4l8 5V6L7 11zM18 9a4 4 0 010 6' });
 const PK = { honneur: { t: "Page d'honneur", ex: 'Titre ou année', thumb: 1 }, rappel: { t: 'Rappel important' }, annonce: { t: 'Annonces' }, statuts: { t: 'Statuts', pdf: 1 }, reglement: { t: 'Règlement intérieur', pdf: 1 }, image: { t: "Images de l'amicale", noTitle: 1 }, morts: { t: 'À nos morts', ex: 'Naissance – Décès', thumb: 1 } };
@@ -169,7 +180,7 @@ function render() {
   <div class="ov ${menu ? 'on' : ''}" onclick="tog()"></div>
   <nav class="dr ${menu ? 'on' : ''}"><div class="dh"><i class="lo" style="width:46px;height:46px">${logo()}</i><b>${esc(BR.name)}</b></div>
   ${item('home', 'Accueil', 'home')}${item('profile', 'Mon profil', 'user')}${item('honneur', "Page d'honneur", 'star')}${item('rappel', 'Rappel important', 'bell')}${item('annonce', 'Annonces', 'mega')}${item('statuts', 'Statuts', 'doc')}${item('reglement', 'Règlement intérieur', 'doc')}${item('budget', 'État du budget', 'wallet')}${item('situation', 'Situation des membres', 'users')}${item('global', 'Situation globale', 'chart')}${item('image', "Images de l'amicale", 'image')}${item('morts', 'À nos morts', 'heart')}
-  ${isAdm() ? `<button class="i ${page === 'requests' ? 'a' : ''}" onclick="go('requests')">${ico('inbox')}Demandes d'inscription<span class="bdg" id="bd-req"></span></button>` + item('members', 'Membres', 'list') + item('settings', 'Paramètres', 'gear') : ''}
+  ${isAdm() ? `<button class="i ${page === 'requests' ? 'a' : ''}" onclick="go('requests')">${ico('inbox')}Demandes d'inscription<span class="bdg" id="bd-req"></span></button>` + item('members', 'Membres', 'list') + item('notify', 'Envoyer une notification', 'bell') + item('settings', 'Paramètres', 'gear') : ''}
   <button class="i" onclick="logout()">${ico('out')}Se déconnecter</button><div class="sp">${FOOT}</div></nav>`;
   setBadges(); refreshPending(); fill();
 }
@@ -177,7 +188,8 @@ function render() {
 async function fill() {
   const c = $('#c'); let h = '';
   if (page === 'home') h = await homeV();
-  else if (page === 'profile') h = await profileV();
+  else if (page === 'profile') h = (await profileV()) + '<div id="pushbox" class="c"></div>';
+  else if (page === 'notify') h = isAdm() ? await notifyV() : '';
   else if (page === 'settings') h = await settingsV();
   else if (page === 'budget') h = await budgetV();
   else if (page === 'situation') h = await situationV();
@@ -187,6 +199,7 @@ async function fill() {
   else if (page === 'requests') h = await listV(['pending', 'rejected'], true);
   else h = await listV(['active', 'disabled', 'deleted'], false);
   if (c) c.innerHTML = h;
+  pushPaint();
 }
 
 const ST = { pending: ['En attente', '#c2410c'], rejected: ['Rejeté', '#b91c1c'], active: ['Actif', '#15803d'], disabled: ['Désactivé', '#4b5563'], deleted: ['Supprimé', '#b91c1c'] };
@@ -247,6 +260,7 @@ async function homeV() {
   const d = new Date(), pm = new Date(d.getFullYear(), d.getMonth() - 1, 1).toLocaleDateString('fr-FR', { month: 'short' });
   const rap = (ps || []).find(p => p.kind === 'rappel'), ann = (ps || []).filter(p => p.kind === 'annonce').slice(0, 2);
   return `<div style="padding:2px 4px"><div class="s">${d.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}</div><div style="font-size:28px;font-weight:800;letter-spacing:-.5px;margin-top:2px">${hello}, ${esc(me.first_name)}</div></div>
+  <div id="pushhome"></div>
   ${pend ? btn(ico('inbox') + pend + (pend > 1 ? ' demandes' : ' demande') + " d'inscription en attente", "go('requests')", 'or') : ''}
   <div class="c" style="background:linear-gradient(135deg,#15803d,#166534)"><div style="font-size:13px;color:#d1fae5">Somme globale disponible en caisse</div><div style="font-size:30px;font-weight:800;margin-top:6px">${fcfa((b.opening || 0) + b.entrees - b.depenses)}</div></div>
   <div class="g3">${stat('Membres actifs', n ?? 0, "go('situation')", 'blue')}${stat('Entrées ' + pm, num(b.prev_entrees), "go('budget')", 'green')}${stat('Dépenses ' + pm, num(b.prev_depenses), "go('budget')", 'red')}</div>
@@ -496,6 +510,7 @@ async function postsV(k) {
     <textarea class="f" name="body" rows="${cf.pdf ? 3 : 5}" placeholder="Texte${cf.pdf ? ' (facultatif)' : ''}"${cf.noTitle || cf.pdf ? '' : ' required'}></textarea>
     ${cf.pdf ? '<label class="b sm" style="margin-top:12px;cursor:pointer;--c:#2563eb;--d:#1e3a8a">Ajouter un PDF<input type="file" accept="application/pdf" hidden onchange="pickPdf(this)"></label>'
       : '<label class="b sm" style="margin-top:12px;cursor:pointer;--c:#2563eb;--d:#1e3a8a">Ajouter une photo<input type="file" accept="image/*" hidden onchange="pickPhoto(this)"></label>'}<div id="pp"></div>
+    <label class="chk"><input type="checkbox" name="notif"${['rappel', 'annonce'].includes(k) ? ' checked' : ''}>📣 Prévenir tous les membres par notification</label>
     <button class="b" style="width:100%;margin-top:10px;--c:#facc15;--d:#a16207;color:#1c1917;text-shadow:none">Publier</button></form>` : '';
   const cards = (data || []).map(p => {
     const del = isAdm() ? `<div style="margin-top:12px">${btnS('Supprimer', `delPost(${p.id})`, 'red')}</div>` : '';
@@ -515,7 +530,13 @@ async function addPost(e, k) {
     file_url = SB.storage.from('amicale-docs').getPublicUrl(path).data.publicUrl;
   }
   const { error } = await SB.from('amicale_posts').insert({ kind: k, title: (f.get('title') || '').trim(), body: (f.get('body') || '').trim(), extra: (f.get('extra') || '').trim() || null, photo: NEWPH || null, file_url });
-  if (error) alert(error.message); NEWPH = ''; NEWPDF = null; fill();
+  if (error) alert(error.message);
+  else if (f.get('notif')) {
+    const t = (f.get('title') || '').trim(), b = (f.get('body') || '').trim();
+    const r = await notifSend({ titre: PK[k].t + (t ? ' : ' + t : ''), message: (b || t || 'Nouvelle publication').slice(0, 300), cible: 'tous', page: k });
+    alert(r.error ? 'Publié, mais la notification n’a pas pu partir : ' + r.error : `Publié et notifié : ${r.envoyes} téléphone(s) atteint(s).`);
+  }
+  NEWPH = ''; NEWPDF = null; fill();
 }
 async function delPost(id) {
   if (!confirm('Supprimer cette publication ?')) return;
@@ -555,6 +576,126 @@ async function refreshPending() {
 }
 setInterval(refreshPending, 60000);
 document.addEventListener('visibilitychange', () => { if (!document.hidden) refreshPending(); });
+
+/* =====================================================================
+   NOTIFICATIONS SUR LE TÉLÉPHONE
+   ===================================================================== */
+const VAPID_PUBLIC = 'BKjJEMKwuNAQuEPLYEUSLXs4nLi-nIUjmeDqD6A7ai8vcmG9Udt623ugfEWnGleu_nS5mKiJx3KqPy9hG_Lfasc';
+const PUSH = { ok: 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window, sub: null, ready: false };
+const IOS = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+const STANDALONE = matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+const lsGet = k => { try { return localStorage.getItem(k); } catch (_) { return null; } };
+const lsSet = (k, v) => { try { localStorage.setItem(k, v); } catch (_) {} };
+const u8 = s => { s = s.replace(/-/g, '+').replace(/_/g, '/'); s += '='.repeat((4 - s.length % 4) % 4); return Uint8Array.from(atob(s), c => c.charCodeAt(0)); };
+const device = () => { const u = navigator.userAgent; return (/android/i.test(u) ? 'Android' : IOS ? 'iPhone/iPad' : /windows/i.test(u) ? 'Windows' : /mac/i.test(u) ? 'Mac' : 'Appareil') + ' · ' + (/edg/i.test(u) ? 'Edge' : /samsungbrowser/i.test(u) ? 'Samsung' : /firefox/i.test(u) ? 'Firefox' : /chrome|crios/i.test(u) ? 'Chrome' : /safari/i.test(u) ? 'Safari' : 'Navigateur'); };
+async function pushSave(sub) {
+  const j = sub.toJSON();
+  const { error } = await SB.rpc('amd_push_enregistrer', { p_endpoint: j.endpoint, p_p256dh: j.keys.p256dh, p_auth: j.keys.auth, p_appareil: device() });
+  return error;
+}
+async function pushInit() {
+  if (!PUSH.ok) { PUSH.ready = true; return pushPaint(); }
+  try {
+    const reg = await Promise.race([navigator.serviceWorker.ready, new Promise((_, no) => setTimeout(() => no(new Error('sw')), 8000))]);
+    PUSH.sub = await reg.pushManager.getSubscription();
+    // Ce téléphone est relié au membre connecté (utile après une reconnexion)
+    if (PUSH.sub && Notification.permission === 'granted') await pushSave(PUSH.sub);
+    else if (PUSH.sub) PUSH.sub = null;
+  } catch (_) {}
+  PUSH.ready = true; pushPaint();
+}
+async function pushEnable() {
+  const box = $('#pushmsg'); const say = (t, ok) => { if (box) box.innerHTML = `<div class="${ok ? 'ok' : 'err'}">${t}</div>`; };
+  try {
+    const perm = await Notification.requestPermission();
+    if (perm !== 'granted') { say('Notifications refusées. Pour les autoriser : touche le cadenas à côté de l’adresse → Autorisations → Notifications → Autoriser.'); return pushPaint(); }
+    const reg = await navigator.serviceWorker.ready;
+    const sub = await reg.pushManager.getSubscription() || await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: u8(VAPID_PUBLIC) });
+    const err = await pushSave(sub);
+    if (err) { say('Enregistrement impossible : ' + esc(err.message) + ' (le fichier notifications-push.sql a-t-il été exécuté ?)'); return; }
+    PUSH.sub = sub; pushPaint(); const m = $('#pushmsg'); if (m) m.innerHTML = '<div class="ok">✅ Notifications activées sur ce téléphone.</div>';
+  } catch (e) { say('Activation impossible sur ce navigateur : ' + esc(e.message || e)); }
+}
+async function pushDisable() {
+  if (!PUSH.sub) return;
+  await SB.rpc('amd_push_retirer', { p_endpoint: PUSH.sub.endpoint }).catch(() => {});
+  try { await PUSH.sub.unsubscribe(); } catch (_) {}
+  PUSH.sub = null; pushPaint();
+}
+async function notifSend(body) {
+  try {
+    const { data, error } = await SB.functions.invoke('envoyer-notification', { body });
+    if (error) {
+      let m = error.message || 'Service indisponible';
+      try { const j = await error.context.json(); if (j && j.error) m = j.error; } catch (_) {}
+      return { error: /fetch|Failed to send|404/i.test(m) ? 'service de notification introuvable (fonction « envoyer-notification » non déployée ?)' : m };
+    }
+    return data || { error: 'Réponse vide' };
+  } catch (e) { return { error: String(e.message || e) }; }
+}
+async function pushTest() {
+  const m = $('#pushmsg'); if (m) m.innerHTML = '<div class="s">Envoi du test…</div>';
+  const r = await notifSend({ action: 'test' });
+  if (m) m.innerHTML = r.error ? `<div class="err">${esc(r.error)}</div>` : `<div class="ok">Test envoyé${r.envoyes ? '' : ' mais aucun téléphone n’a répondu'} : la notification doit arriver dans quelques secondes.</div>`;
+}
+function pushState() {
+  if (!PUSH.ok) return IOS && !STANDALONE ? 'ios' : 'non';
+  if (Notification.permission === 'denied') return 'refus';
+  return PUSH.sub ? 'on' : 'off';
+}
+function pushPaint() {
+  const st = pushState(), box = $('#pushbox'), home = $('#pushhome');
+  const IOS_TXT = 'Sur iPhone, les notifications marchent seulement depuis l’icône A.M.D : touche <b>Partager</b> ⬆️ puis <b>Sur l’écran d’accueil</b>, ouvre A.M.D depuis cette icône et reviens ici.';
+  if (box) {
+    const body = {
+      on: `<div class="pst"><i>🔔</i><div><b>Notifications activées</b><div class="s" style="margin-top:4px">Ce téléphone sonnera pour les annonces, rappels et messages des administrateurs.</div></div></div><div class="g2" style="margin-top:4px">${btnS('Tester', 'pushTest()', 'blue')}${btnS('Désactiver', 'pushDisable()', 'gray')}</div>`,
+      off: `<div class="pst"><i>🔕</i><div><b>Notifications désactivées</b><div class="s" style="margin-top:4px">Active-les pour être prévenu des annonces et rappels de l’amicale, même application fermée.</div></div></div>${btn('🔔 Activer les notifications', 'pushEnable()', 'green')}`,
+      refus: `<div class="pst"><i>🚫</i><div><b>Notifications bloquées</b><div class="s" style="margin-top:4px">Tu les as refusées sur ce téléphone. Pour les autoriser : touche le cadenas à côté de l’adresse (ou les paramètres de l’application) → <b>Autorisations</b> → <b>Notifications</b> → <b>Autoriser</b>, puis actualise.</div></div></div>`,
+      ios: `<div class="pst"><i>📱</i><div><b>Notifications sur iPhone</b><div class="s" style="margin-top:4px">${IOS_TXT}</div></div></div>`,
+      non: `<div class="pst"><i>⚠️</i><div><b>Notifications indisponibles</b><div class="s" style="margin-top:4px">Ce navigateur ne gère pas les notifications. Ouvre A.M.D avec Google Chrome.</div></div></div>`
+    }[st];
+    box.innerHTML = `<div class="pbx">${PUSH.ready || !PUSH.ok ? body : '<div class="s">Vérification des notifications…</div>'}<div id="pushmsg"></div></div>`;
+  }
+  if (home) {
+    const show = PUSH.ready && (st === 'off' || st === 'ios') && lsGet('amd_push_plustard') !== '1';
+    home.innerHTML = show ? `<div class="c" style="background:linear-gradient(135deg,#a16207,#713f12)"><div class="pst"><i>🔔</i><div><b>Ne rate plus aucune annonce</b><div style="font-size:14px;color:#fef3c7;margin-top:6px;line-height:1.5">${st === 'ios' ? IOS_TXT : 'Active les notifications : ton téléphone sonnera à chaque annonce ou rappel de l’amicale.'}</div></div></div>
+      <div class="g2">${st === 'off' ? btnS('Activer', 'pushEnable()', 'green') : ''}${btnS('Plus tard', "lsSet('amd_push_plustard','1');pushPaint()", 'gray')}</div><div id="pushmsg"></div></div>` : '';
+  }
+}
+if ('serviceWorker' in navigator) navigator.serviceWorker.addEventListener('message', e => { if (e.data && e.data.amdGoto && me && TITRES[e.data.amdGoto]) go(e.data.amdGoto); });
+
+/* ---------- Page administrateur : envoyer une notification ---------- */
+let NM = [];
+async function notifyV() {
+  const [{ data: mb, error }, { data: hist }] = await Promise.all([SB.rpc('amd_push_membres'), SB.rpc('amd_push_historique')]);
+  if (error) return `<div class="err">Fonction indisponible : exécute d’abord le fichier notifications-push.sql dans Supabase. (${esc(error.message)})</div>`;
+  NM = mb || [];
+  const on = NM.filter(m => m.nb_appareils > 0).length;
+  const list = NM.map(m => `<label><input type="checkbox" name="ids" value="${esc(m.id)}"><span style="flex:1;min-width:0">${esc(m.first_name)} ${esc(m.last_name)}<span class="s" style="display:block">${m.nb_appareils ? '🔔 ' + m.nb_appareils + ' téléphone' + (m.nb_appareils > 1 ? 's' : '') : '🔕 notifications non activées'}</span></span></label>`).join('');
+  const hl = (hist || []).map(h => `<div class="row"><div style="min-width:0"><div style="font-weight:700">${esc(h.titre)}</div><div class="s" style="white-space:pre-wrap">${esc(h.message)}</div><div class="s" style="margin-top:4px">${new Date(h.created_at).toLocaleString('fr-FR')} · ${esc(h.envoye_par_nom || '')} · ${h.nb_ok}/${h.nb_appareils} téléphone(s) · ${{ tous: 'Tous les membres', admins: 'Administrateurs', selection: h.nb_membres + ' membre(s) choisi(s)' }[h.cible] || esc(h.cible)}</div></div></div>`).join('');
+  return `<div class="c" style="background:linear-gradient(135deg,#1e3a8a,#2563eb)"><div style="font-size:13px;color:#dbeafe">Membres joignables par notification</div><div style="font-size:28px;font-weight:800;margin-top:4px">${on} / ${NM.length}</div><div style="font-size:13px;color:#dbeafe;margin-top:4px">Les autres doivent ouvrir A.M.D sur leur téléphone et toucher « Activer les notifications ».</div></div>
+  <form class="c" onsubmit="notifyGo(event)"><div style="font-weight:700;font-size:16px">Nouveau message</div>
+  <label class="s" style="display:block;margin-top:12px">Titre<input class="f" name="titre" required maxlength="80" placeholder="Ex. : Réunion de l’amicale"></label>
+  <label class="s" style="display:block;margin-top:12px">Message<textarea class="f" name="message" rows="4" required maxlength="500" placeholder="Ex. : Réunion samedi à 16h au siège. Présence obligatoire."></textarea></label>
+  <label class="s" style="display:block;margin-top:12px">Destinataires<select class="f" name="cible" onchange="$('#ml').style.display=this.value==='selection'?'block':'none'"><option value="tous">Tous les membres</option><option value="admins">Administrateurs seulement</option><option value="selection">Choisir des membres</option></select></label>
+  <div id="ml" style="display:none"><input class="f" type="search" placeholder="Rechercher un membre" oninput="const q=norm(this.value).trim();document.querySelectorAll('#ml label').forEach(l=>l.style.display=norm(l.textContent).includes(q)?'':'none')"><div class="mlist">${list || '<div class="s" style="padding:12px">Aucun membre actif.</div>'}</div></div>
+  <button class="b" style="width:100%;margin-top:16px;--c:#facc15;--d:#a16207;color:#1c1917;text-shadow:none">📣 Envoyer la notification</button><div id="nres"></div></form>
+  <div class="c" style="padding-top:8px;padding-bottom:8px"><div style="font-weight:700;padding:8px 0">Derniers envois</div>${hl || '<div class="s" style="padding-bottom:8px">Aucune notification envoyée pour le moment.</div>'}</div>`;
+}
+async function notifyGo(e) {
+  e.preventDefault(); const f = new FormData(e.target), bt = e.target.querySelector('button'), out = $('#nres');
+  const body = { titre: f.get('titre').trim(), message: f.get('message').trim(), cible: f.get('cible'), ids: f.getAll('ids') };
+  if (body.cible === 'selection' && !body.ids.length) { out.innerHTML = '<div class="err" style="margin-top:10px">Coche au moins un membre.</div>'; return; }
+  const qui = body.cible === 'tous' ? 'tous les membres' : body.cible === 'admins' ? 'les administrateurs' : body.ids.length + ' membre(s)';
+  if (!confirm(`Envoyer « ${body.titre} » à ${qui} ?`)) return;
+  bt.disabled = true; out.innerHTML = '<div class="s" style="margin-top:10px">Envoi en cours…</div>';
+  const r = await notifSend(body); bt.disabled = false;
+  if (r.error) { out.innerHTML = `<div class="err" style="margin-top:10px">${esc(r.error)}</div>`; return; }
+  const sans = r.membres - r.membres_joignables;
+  out.innerHTML = `<div class="ok" style="margin-top:10px">✅ Envoyée à ${r.envoyes} téléphone(s) (${r.membres_joignables} membre(s)).${sans > 0 ? `<br>${sans} membre(s) n’ont pas encore activé les notifications.` : ''}${r.echecs ? `<br>${r.echecs} téléphone(s) n’ont pas répondu (notifications retirées ou appli désinstallée).` : ''}</div>`;
+  e.target.reset(); $('#ml').style.display = 'none';
+  setTimeout(async () => { if (page === 'notify') { const c = $('#c'); const keep = out.innerHTML; c.innerHTML = await notifyV(); const n = $('#nres'); if (n) n.innerHTML = keep; } }, 600);
+}
 
 SB.auth.onAuthStateChange(() => {});
 boot();
