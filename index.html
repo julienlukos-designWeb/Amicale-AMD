@@ -69,11 +69,11 @@ select.f{appearance:auto}
 .hd{position:sticky;top:0;z-index:5;height:64px;display:flex;align-items:center;gap:10px;padding:0 12px;background:rgba(14,17,24,.86);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-bottom:1px solid var(--bd)}
 .hd .lg{flex:1}
 .pg{padding-bottom:110px}
-.bn{position:fixed;left:0;right:0;bottom:0;z-index:6;display:grid;gap:4px;padding:8px 8px calc(12px + env(safe-area-inset-bottom));background:rgba(14,17,24,.94);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-top:1px solid var(--bd)}
+.bn{position:fixed;left:0;right:0;bottom:0;z-index:6;display:block;padding:8px 8px calc(12px + env(safe-area-inset-bottom));background:rgba(14,17,24,.94);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-top:1px solid var(--bd)}
 .bn button{position:relative;border:0;background:none;border-radius:14px;min-height:56px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:#8b94a7;font-size:10.5px;font-weight:600;white-space:nowrap;padding:0}
 .bn button.on{color:#1c1917;font-weight:800;background:linear-gradient(180deg,rgba(255,255,255,.3),rgba(255,255,255,0) 60%),#facc15;box-shadow:0 4px 0 #a16207,inset 0 1px 0 rgba(255,255,255,.5)}
 .bn .bdg{position:absolute;top:2px;right:8px;margin:0;min-width:20px;height:20px;font-size:11px}
-.bn-in{max-width:560px;margin:0 auto;display:grid;gap:4px}
+.bn-in{width:100%;max-width:560px;margin:0 auto;display:grid;gap:4px}
 .k3{--c:#2563eb;--d:#1e3a8a;border:0;color:#fff;background:linear-gradient(160deg,rgba(255,255,255,.18),rgba(255,255,255,0) 50%),var(--c);box-shadow:0 7px 0 var(--d),0 16px 24px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.35);margin-bottom:6px;text-align:left;font:inherit;width:100%}
 button.k3{cursor:pointer;transition:transform .08s,box-shadow .08s}button.k3:active{transform:translateY(5px);box-shadow:0 2px 0 var(--d),0 5px 10px rgba(0,0,0,.4)}
 .k3 .s{color:rgba(255,255,255,.85)}
@@ -108,7 +108,18 @@ button.k3{cursor:pointer;transition:transform .08s,box-shadow .08s}button.k3:act
 <div id="app"></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
-const SB = supabase.createClient('https://fwodbaildriqkmpplutj.supabase.co', 'sb_publishable_yDfRe6HmyHgGVo1AuuosYg_h9LDlWLA');
+// Session morte (déconnectée ailleurs ou expirée) : on renvoie à la connexion au lieu d'afficher une page vide
+let sessionMorteFaite = false;
+async function sessionMorte() {
+  if (sessionMorteFaite) return; sessionMorteFaite = true;
+  try { await SB.auth.signOut({ scope: 'local' }); } catch (_) {}
+  try { Object.keys(localStorage).filter(k => k.startsWith('sb-')).forEach(k => localStorage.removeItem(k)); } catch (_) {}
+  me = null; page = 'home'; tab = 'in'; msg = 'Ta session a expiré. Reconnecte-toi avec ton numéro et ton mot de passe.';
+  render(); sessionMorteFaite = false;
+}
+const SB = supabase.createClient('https://fwodbaildriqkmpplutj.supabase.co', 'sb_publishable_yDfRe6HmyHgGVo1AuuosYg_h9LDlWLA', {
+  global: { fetch: async (u, o) => { const r = await fetch(u, o); if (r.status === 401 && String(u).includes('/rest/v1/') && typeof me !== 'undefined' && me) setTimeout(sessionMorte, 0); return r; } }
+});
 const SLOGAN = 'Foula - Fiit - Fayda';
 let BR = { name: 'A.M.D', logo: 'logo.png' };
 const logo = () => BR.logo ? `<img src="${esc(BR.logo)}" alt="Logo" onerror="this.outerHTML='Logo'">` : 'Logo';
@@ -133,12 +144,17 @@ async function loadBrand() {
 }
 async function boot() {
   await loadBrand();
-  const { data: { session } } = await SB.auth.getSession();
+  let { data: { session } } = await SB.auth.getSession();
   me = null;
+  if (session) {
+    // Vérifie auprès du serveur que la session est encore valable
+    const { error: ue } = await SB.auth.getUser();
+    if (ue) { const { data: rf, error: re } = await SB.auth.refreshSession(); if (re || !rf?.session) { await SB.auth.signOut({ scope: 'local' }).catch(() => {}); try { Object.keys(localStorage).filter(k => k.startsWith('sb-')).forEach(k => localStorage.removeItem(k)); } catch (_) {} session = null; msg = 'Ta session a expiré. Reconnecte-toi avec ton numéro et ton mot de passe.'; } else session = rf.session; }
+  }
   if (session) {
     const { data } = await SB.from('profiles').select('*').eq('id', session.user.id).maybeSingle();
     me = data;
-    if (!me) { await SB.auth.signOut(); msg = 'Compte introuvable. Crée un compte.'; }
+    if (!me) { await SB.auth.signOut({ scope: 'local' }); msg = 'Compte introuvable. Crée un compte.'; }
   }
   // Ouverture depuis une notification : ?p=annonce → page Annonces
   const qp = new URLSearchParams(location.search).get('p');
@@ -295,6 +311,7 @@ async function homeV() {
   const [{ data: sm }, { data: tr }, sp, { data: rp }] = await Promise.all([SB.rpc('budget_summary'),
     SB.from('amicale_tranches').select('tranche,validated_at').eq('member_id', me.id).eq('year', YEAR), loadSpeciales(),
     SB.from('amd_rappels').select('id,items,annee,created_at').eq('member_id', me.id).order('id', { ascending: false }).limit(5)]);
+  const { data: epg } = await SB.from('amicale_posts').select('id,title,body,photo,file_url,created_at').eq('kind', 'annonce').eq('epingle', true).order('created_at', { ascending: false }).limit(10);
   const b = sm || { opening: 0, entrees: 0, depenses: 0 };
   const t1 = (tr || []).find(x => x.tranche === 1), t2 = (tr || []).find(x => x.tranche === 2), nT = (t1 ? 1 : 0) + (t2 ? 1 : 0);
   const paidSp = id => SP.pay.some(x => x.cotisation_id === id && x.member_id === me.id);
@@ -315,6 +332,7 @@ async function homeV() {
   <button class="c k3" style="--c:#2563eb;--d:#1e3a8a" onclick="go('profile')"><div class="m"><b style="font-size:16px">Ma cotisation ${YEAR}</b><span class="tag" style="background:rgba(0,0,0,.25)">${nT === 2 ? 'À jour ✓' : nT + ' tranche sur 2'}</span></div>
     <div class="bar" style="margin:12px 0 10px"><i style="width:${nT * 50}%"></i></div><div class="m" style="font-size:13px"><span>Tranche 1 : ${t1 ? 'payée ✓' : 'à payer'}</span><span>Tranche 2 : ${t2 ? 'payée ✓' : 'à payer'}</span></div></button>
   <div style="font-weight:800;font-size:17px;padding:4px 4px 0">Annonces</div>
+  ${(epg || []).map(epingleCarte).join('')}
   <div id="notifbox"></div>`;
 }
 
@@ -369,7 +387,7 @@ async function budgetV() {
     <button class="b" style="width:100%;margin-top:14px;--c:#facc15;--d:#a16207;color:#1c1917;text-shadow:none">Enregistrer</button></form>` : '';
   const open = isAdm() ? `<form class="c" onsubmit="saveOpening(event)"><label class="s">Solde initial (report de 2025), en FCFA<input class="f" name="op" type="number" step="1" inputmode="numeric" value="${g.opening || 0}" required></label>
     <button class="b sm" style="width:100%;margin-top:12px">Enregistrer le solde initial</button></form>` : '';
-  return `<div class="c" style="background:linear-gradient(135deg,#15803d,#166534)"><div style="font-size:13px;color:#d1fae5">Somme disponible en caisse</div><div style="font-size:30px;font-weight:800;margin-top:6px">${fcfa(total)}</div><div style="font-size:12px;color:#d1fae5;margin-top:4px">dont solde initial (report 2025) : ${fcfa(g.opening || 0)}</div></div>
+  return `<div class="c" style="background:linear-gradient(135deg,#15803d,#166534)"><div style="font-size:13px;color:#d1fae5">Somme disponible en banque</div><div style="font-size:30px;font-weight:800;margin-top:6px">${fcfa(total)}</div><div style="font-size:12px;color:#d1fae5;margin-top:4px">dont solde initial (report 2025) : ${fcfa(g.opening || 0)}</div></div>
   <div class="c m" style="padding:8px"><button class="ic" onclick="shiftMonth(-1)" aria-label="Mois précédent">${CHEV('M15 5l-7 7 7 7')}</button><b>${MN(BM.y, BM.m)}</b><button class="ic" onclick="shiftMonth(1)" aria-label="Mois suivant" ${cur ? 'disabled style="opacity:.3"' : ''}>${CHEV('M9 5l7 7-7 7')}</button></div>
   <div class="g3"><div class="c st" style="background:linear-gradient(135deg,#15803d,#166534)"><div class="s" style="color:#d1fae5">Entrées</div><b>${num(k.entrees)}</b></div>
   <div class="c st" style="background:linear-gradient(135deg,#b91c1c,#7f1d1d)"><div class="s" style="color:#fecaca">Dépenses</div><b>${num(k.depenses)}</b></div>
@@ -561,9 +579,23 @@ function pickPdf(inp) {
   if (f.size > 10 * 1024 * 1024) { alert('PDF trop lourd (10 Mo maximum).'); inp.value = ''; return; }
   NEWPDF = f; $('#pp').innerHTML = `<div class="s" style="margin-top:10px">PDF choisi : ${esc(f.name)}</div>`;
 }
+const epingleCarte = p => `<div class="c k3" style="--c:#a16207;--d:#713f12">
+  <div class="m"><span style="display:flex;align-items:center;gap:6px;font-size:11px;font-weight:800;letter-spacing:1px">${ico('pin')}ANNONCE ÉPINGLÉE</span><span style="font-size:12px;opacity:.85">${dfr(p.created_at.slice(0, 10))}</span></div>
+  ${p.photo ? `<img src="${esc(p.photo)}" alt="" style="width:100%;max-height:220px;object-fit:cover;border-radius:12px;margin-top:10px">` : ''}
+  ${p.title ? `<div style="font-weight:800;font-size:17px;margin-top:8px">${esc(p.title)}</div>` : ''}
+  ${p.body ? `<div style="font-size:14px;line-height:1.55;margin-top:6px;white-space:pre-wrap">${esc(p.body)}</div>` : ''}
+  ${p.file_url ? `<a class="b sm" href="${esc(p.file_url)}" target="_blank" rel="noopener" style="--c:#2563eb;--d:#1e3a8a;text-decoration:none;margin-top:10px">Ouvrir le PDF</a>` : ''}
+  ${isAdm() ? `<div style="margin-top:12px">${btnS('Retirer l’épingle', `pinPost(${p.id},false)`, 'gray')}</div>` : ''}</div>`;
+async function pinPost(id, v) {
+  const { error } = await SB.from('amicale_posts').update({ epingle: v }).eq('id', id);
+  if (error) { alert('Impossible : ' + error.message); return; }
+  fill();
+}
 async function postsV(k) {
   NEWPH = ''; NEWPDF = null; const cf = PK[k];
-  const { data, error } = await SB.from('amicale_posts').select('*').eq('kind', k).order('created_at', { ascending: false }).limit(50);
+  let q = SB.from('amicale_posts').select('*').eq('kind', k);
+  if (k === 'annonce') q = q.order('epingle', { ascending: false });
+  const { data, error } = await q.order('created_at', { ascending: false }).limit(50);
   if (error) return `<div class="err">${esc(error.message)}</div>`;
   const form = isAdm() ? `<form class="c" onsubmit="addPost(event,'${k}')"><div style="font-weight:700">Ajouter</div>
     ${cf.noTitle ? '' : '<input class="f" name="title" placeholder="Titre" required>'}
@@ -571,12 +603,15 @@ async function postsV(k) {
     <textarea class="f" name="body" rows="${cf.pdf ? 3 : 5}" placeholder="Texte${cf.pdf ? ' (facultatif)' : ''}"${cf.noTitle || cf.pdf ? '' : ' required'}></textarea>
     ${cf.pdf ? '<label class="b sm" style="margin-top:12px;cursor:pointer;--c:#2563eb;--d:#1e3a8a">Ajouter un PDF<input type="file" accept="application/pdf" hidden onchange="pickPdf(this)"></label>'
       : '<label class="b sm" style="margin-top:12px;cursor:pointer;--c:#2563eb;--d:#1e3a8a">Ajouter une photo<input type="file" accept="image/*" hidden onchange="pickPhoto(this)"></label>'}<div id="pp"></div>
+    ${k === 'annonce' ? '<label class="chk"><input type="checkbox" name="pin">📌 Épingler sur l’accueil (reste affichée en permanence)</label>' : ''}
     <label class="chk"><input type="checkbox" name="notif"${['rappel', 'annonce'].includes(k) ? ' checked' : ''}>📣 Prévenir tous les membres par notification</label>
     <button class="b" style="width:100%;margin-top:10px;--c:#facc15;--d:#a16207;color:#1c1917;text-shadow:none">Publier</button></form>` : '';
   const cards = (data || []).map(p => {
-    const del = isAdm() ? `<div style="margin-top:12px">${btnS('Supprimer', `delPost(${p.id})`, 'red')}</div>` : '';
+    const pinB = k === 'annonce' ? (p.epingle ? btnS('Retirer l’épingle', `pinPost(${p.id},false)`, 'gray') : btnS('📌 Épingler', `pinPost(${p.id},true)`, 'or')) : '';
+    const del = isAdm() ? `<div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">${pinB}${btnS('Supprimer', `delPost(${p.id})`, 'red')}</div>` : '';
+    const tagPin = p.epingle ? `<div style="display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:800;letter-spacing:1px;color:#facc15;margin-bottom:6px">${ico('pin')}ÉPINGLÉE SUR L’ACCUEIL</div>` : '';
     const pdf = p.file_url ? `<a class="b sm" href="${esc(p.file_url)}" target="_blank" rel="noopener" style="--c:#2563eb;--d:#1e3a8a;text-decoration:none;margin-top:12px">Ouvrir le PDF</a>` : '';
-    const txt = `<div style="min-width:0;flex:1">${p.title ? `<div style="font-weight:700;font-size:16px">${esc(p.title)}</div>` : ''}${p.extra ? `<div class="s" style="margin-top:2px">${esc(p.extra)}</div>` : ''}${p.body ? `<div style="font-size:14px;margin-top:8px;line-height:1.5;white-space:pre-wrap">${esc(p.body)}</div>` : ''}${pdf}<div class="s" style="margin-top:8px">Publié le ${dfr(p.created_at.slice(0, 10))}</div></div>`;
+    const txt = `<div style="min-width:0;flex:1">${tagPin}${p.title ? `<div style="font-weight:700;font-size:16px">${esc(p.title)}</div>` : ''}${p.extra ? `<div class="s" style="margin-top:2px">${esc(p.extra)}</div>` : ''}${p.body ? `<div style="font-size:14px;margin-top:8px;line-height:1.5;white-space:pre-wrap">${esc(p.body)}</div>` : ''}${pdf}<div class="s" style="margin-top:8px">Publié le ${dfr(p.created_at.slice(0, 10))}</div></div>`;
     if (cf.thumb) return `<div class="c"><div style="display:flex;gap:14px">${p.photo ? `<img class="ph" src="${esc(p.photo)}" alt="">` : '<div class="ph">Photo</div>'}${txt}</div>${del}</div>`;
     return `<div class="c">${p.photo ? `<img src="${esc(p.photo)}" alt="" style="width:100%;max-height:300px;object-fit:cover;border-radius:14px;margin-bottom:12px">` : ''}${txt}${del}</div>`;
   }).join('');
@@ -590,7 +625,9 @@ async function addPost(e, k) {
     if (up.error) { alert("Envoi du PDF impossible : " + up.error.message + " (le fichier 5-ajustements.sql a-t-il été exécuté ?)"); return; }
     file_url = SB.storage.from('amicale-docs').getPublicUrl(path).data.publicUrl;
   }
-  const { error } = await SB.from('amicale_posts').insert({ kind: k, title: (f.get('title') || '').trim(), body: (f.get('body') || '').trim(), extra: (f.get('extra') || '').trim() || null, photo: NEWPH || null, file_url });
+  const row = { kind: k, title: (f.get('title') || '').trim(), body: (f.get('body') || '').trim(), extra: (f.get('extra') || '').trim() || null, photo: NEWPH || null, file_url };
+  if (k === 'annonce' && f.get('pin')) row.epingle = true;
+  const { error } = await SB.from('amicale_posts').insert(row);
   if (error) alert(error.message);
   else if (f.get('notif')) {
     const t = (f.get('title') || '').trim(), b = (f.get('body') || '').trim();
@@ -904,7 +941,7 @@ async function notifyGo(e) {
   setTimeout(async () => { if (page === 'notify') { const c = $('#c'); const keep = out.innerHTML; c.innerHTML = await notifyV(); const n = $('#nres'); if (n) n.innerHTML = keep; } }, 600);
 }
 
-SB.auth.onAuthStateChange(() => {});
+SB.auth.onAuthStateChange((ev) => { if (ev === 'SIGNED_OUT' && me) { me = null; page = 'home'; tab = 'in'; render(); } });
 boot();
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
 </script>
