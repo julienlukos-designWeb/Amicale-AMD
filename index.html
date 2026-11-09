@@ -766,7 +766,9 @@ document.addEventListener('visibilitychange', () => { if (!document.hidden) refr
    NOTIFICATIONS SUR LE TÉLÉPHONE
    ===================================================================== */
 const VAPID_PUBLIC = 'BKjJEMKwuNAQuEPLYEUSLXs4nLi-nIUjmeDqD6A7ai8vcmG9Udt623ugfEWnGleu_nS5mKiJx3KqPy9hG_Lfasc';
-const PUSH = { ok: 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window, sub: null, ready: false };
+const PUSH = { ok: 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window, sub: null, ready: false, srv: 0, justOn: false };
+// Nombre de téléphones déjà abonnés pour ce membre (vérifié sur le serveur)
+async function pushSrv() { try { const { data, error } = await SB.rpc('amd_push_mon_statut'); if (!error) PUSH.srv = Number(data) || 0; } catch (_) {} }
 const IOS = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 const STANDALONE = matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
 const lsGet = k => { try { return localStorage.getItem(k); } catch (_) { return null; } };
@@ -779,7 +781,7 @@ async function pushSave(sub) {
   return error;
 }
 async function pushInit() {
-  if (!PUSH.ok) { PUSH.ready = true; return pushPaint(); }
+  if (!PUSH.ok) { await pushSrv(); PUSH.ready = true; return pushPaint(); }
   try {
     const reg = await Promise.race([navigator.serviceWorker.ready, new Promise((_, no) => setTimeout(() => no(new Error('sw')), 8000))]);
     PUSH.sub = await reg.pushManager.getSubscription();
@@ -787,6 +789,7 @@ async function pushInit() {
     if (PUSH.sub && Notification.permission === 'granted') await pushSave(PUSH.sub);
     else if (PUSH.sub) PUSH.sub = null;
   } catch (_) {}
+  await pushSrv();
   PUSH.ready = true; pushPaint();
 }
 async function pushEnable() {
@@ -798,14 +801,14 @@ async function pushEnable() {
     const sub = await reg.pushManager.getSubscription() || await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: u8(VAPID_PUBLIC) });
     const err = await pushSave(sub);
     if (err) { say('Enregistrement impossible : ' + esc(err.message) + ' (le fichier notifications-push.sql a-t-il été exécuté ?)'); return; }
-    PUSH.sub = sub; pushPaint(); const m = $('#pushmsg'); if (m) m.innerHTML = '<div class="ok">✅ Notifications activées sur ce téléphone.</div>';
+    PUSH.sub = sub; PUSH.srv = Math.max(PUSH.srv, 1); PUSH.justOn = true; pushPaint(); const m = $('#pushmsg'); if (m) m.innerHTML = '<div class="ok">✅ Notifications activées sur ce téléphone.</div>';
   } catch (e) { say('Activation impossible sur ce navigateur : ' + esc(e.message || e)); }
 }
 async function pushDisable() {
   if (!PUSH.sub) return;
   await SB.rpc('amd_push_retirer', { p_endpoint: PUSH.sub.endpoint }).catch(() => {});
   try { await PUSH.sub.unsubscribe(); } catch (_) {}
-  PUSH.sub = null; pushPaint();
+  PUSH.sub = null; PUSH.justOn = false; await pushSrv(); pushPaint();
 }
 async function notifSend(body) {
   try {
@@ -824,7 +827,9 @@ async function notifSend(body) {
 async function pushTest() {
   const m = $('#pushmsg'); if (m) m.innerHTML = '<div class="s">Envoi du test…</div>';
   const r = await notifSend({ action: 'test' });
-  if (m) m.innerHTML = r.error ? `<div class="err">${esc(r.error)}</div>` : `<div class="ok">Test envoyé${r.envoyes ? '' : ' mais aucun téléphone n’a répondu'} : la notification doit arriver dans quelques secondes.</div>`;
+  const txt = r.error ? `<div class="err">${esc(r.error)}</div>` : `<div class="ok">Test envoyé${r.envoyes ? '' : ' mais aucun téléphone n’a répondu'} : la notification doit arriver dans quelques secondes.</div>`;
+  PUSH.justOn = false; pushPaint();          // le bouton « Tester » disparaît après usage
+  const m2 = $('#pushmsg'); if (m2) m2.innerHTML = txt;
 }
 function pushState() {
   if (!PUSH.ok) return IOS && !STANDALONE ? 'ios' : 'non';
@@ -836,7 +841,7 @@ function pushPaint() {
   const IOS_TXT = 'Sur iPhone, les notifications marchent seulement depuis l’icône A.M.D : touche <b>Partager</b> ⬆️ puis <b>Sur l’écran d’accueil</b>, ouvre A.M.D depuis cette icône et reviens ici.';
   if (box) {
     const body = {
-      on: `<div class="pst"><i>🔔</i><div><b>Notifications activées</b><div class="s" style="margin-top:4px">Ce téléphone sonnera pour les annonces, rappels et messages des administrateurs.</div></div></div><div class="g2" style="margin-top:4px">${btnS('Tester', 'pushTest()', 'blue')}${btnS('Désactiver', 'pushDisable()', 'gray')}</div>`,
+      on: `<div class="pst"><i>🔔</i><div><b>Notifications activées</b><div class="s" style="margin-top:4px">Ce téléphone sonnera pour les annonces, rappels et messages des administrateurs.</div></div></div>${PUSH.justOn ? `<div class="g2" style="margin-top:4px">${btnS('Tester', 'pushTest()', 'blue')}${btnS('Désactiver', 'pushDisable()', 'gray')}</div>` : `<div style="margin-top:4px">${btnS('Désactiver', 'pushDisable()', 'gray')}</div>`}`,
       off: `<div class="pst"><i>🔕</i><div><b>Notifications désactivées</b><div class="s" style="margin-top:4px">Active-les pour être prévenu des annonces et rappels de l’amicale, même application fermée.</div></div></div>${btn('🔔 Activer les notifications', 'pushEnable()', 'green')}`,
       refus: `<div class="pst"><i>🚫</i><div><b>Notifications bloquées</b><div class="s" style="margin-top:4px">Tu les as refusées sur ce téléphone. Pour les autoriser : touche le cadenas à côté de l’adresse (ou les paramètres de l’application) → <b>Autorisations</b> → <b>Notifications</b> → <b>Autoriser</b>, puis actualise.</div></div></div>`,
       ios: `<div class="pst"><i>📱</i><div><b>Notifications sur iPhone</b><div class="s" style="margin-top:4px">${IOS_TXT}</div></div></div>`,
@@ -847,7 +852,8 @@ function pushPaint() {
   if (home) {
     // Une seule carte, sur l'accueil uniquement, sans « Plus tard » : elle disparaît dès que les notifications sont activées.
     // Elle ne bloque jamais l'application. Désactivable dans Paramètres.
-    const show = BR.notifOblig && PUSH.ready && ['off', 'ios', 'refus'].includes(st);
+    // Rappel UNIQUEMENT pour les membres qui n'ont encore activé les notifications sur aucun téléphone.
+    const show = BR.notifOblig && PUSH.ready && st !== 'on' && PUSH.srv === 0 && ['off', 'ios', 'refus'].includes(st);
     const txt = st === 'ios' ? IOS_TXT : st === 'refus' ? 'Les notifications sont bloquées sur ce téléphone. Pour les autoriser : paramètres du téléphone → Notifications → A.M.D (ou Chrome) → Autoriser.' : 'Active les notifications : ton téléphone sonnera à chaque annonce, rappel ou cotisation de l’amicale.';
     home.innerHTML = show ? `<div class="c" style="background:linear-gradient(135deg,#a16207,#713f12)"><div class="pst"><i>🔔</i><div><b>Active les notifications</b><div style="font-size:14px;color:#fef3c7;margin-top:6px;line-height:1.5">${txt}</div></div></div>
       ${st === 'off' ? `<div style="margin-top:12px">${btn('Activer les notifications', 'pushEnable()', 'green')}</div>` : ''}<div id="pushmsg"></div></div>` : '';
