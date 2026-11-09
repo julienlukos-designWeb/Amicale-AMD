@@ -60,6 +60,19 @@ select.f{appearance:auto}
 .dr .sp{margin-top:auto;padding:12px 20px 0;font-size:11px;color:var(--mu)}
 .ctr{min-height:100vh;display:flex;flex-direction:column;justify-content:center;gap:14px;max-width:420px;margin:0 auto;padding:28px 20px;text-align:center}
 .big{width:96px;height:96px;margin:0 auto;border-radius:50%;overflow:hidden;background:linear-gradient(135deg,#facc15,#c2410c);display:flex;align-items:center;justify-content:center;font-weight:800;color:#1c1917;box-shadow:0 0 0 4px rgba(255,255,255,.12),0 14px 30px rgba(0,0,0,.4)}
+.isheet{position:fixed;inset:0;z-index:70;background:rgba(5,8,14,.72);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);display:flex;align-items:flex-end;justify-content:center;padding:12px;padding-bottom:calc(12px + env(safe-area-inset-bottom))}
+.ibox{background:#151a24;border:1px solid rgba(255,255,255,.1);border-radius:24px;padding:20px 16px 10px;width:100%;max-width:440px;max-height:calc(100vh - 24px);overflow:auto;box-shadow:0 6px 0 #0a0d13,0 24px 50px rgba(0,0,0,.55)}
+.ianim{animation:up .3s ease both}
+.ilogo{width:76px;height:76px;margin:0 auto 12px;border-radius:22px;overflow:hidden;background:linear-gradient(135deg,#facc15,#c2410c);display:flex;align-items:center;justify-content:center;font-weight:800;color:#1c1917;box-shadow:0 5px 0 #7c2d12,0 12px 24px rgba(0,0,0,.4)}
+.ilogo img{width:100%;height:100%;object-fit:cover}
+.istep{display:flex;gap:12px;align-items:flex-start;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:12px;margin-top:12px;text-align:left;line-height:1.45}
+.istep>div{flex:1;min-width:0}.istep .s{margin-top:3px}
+.ist{flex:none;width:30px;height:30px;border-radius:10px;background:#2563eb;box-shadow:0 3px 0 #1e3a8a;color:#fff;display:grid;place-items:center;font-weight:800;font-size:15px}
+.ist.ok{background:#15803d;box-shadow:0 3px 0 #14532d}
+.isteps{margin:6px 0 0;padding-left:20px;font-size:14px;color:#d6dbe6}.isteps li{margin:3px 0}
+.ik{display:inline-block;background:rgba(255,255,255,.12);border-radius:6px;padding:0 6px}
+.ilater{display:block;margin:12px auto 2px;background:none;border:0;color:var(--mu);font:inherit;font-size:13px;text-decoration:underline;padding:8px;cursor:pointer}
+html.inst-lock,html.inst-lock body{overflow:hidden}
 .gate{position:fixed;inset:0;z-index:60;overflow:auto;background:radial-gradient(800px 480px at 0% -8%,rgba(37,99,235,.28),transparent 60%),var(--bg)}
 .gate .ctr{min-height:100%}.gate .c{text-align:left}
 .nf{background:linear-gradient(135deg,#1e3a8a,#312e81);border-color:rgba(147,197,253,.25)}
@@ -207,8 +220,8 @@ Object.keys(PK).forEach(k => TITRES[k] = PK[k].t); TITRES.event = 'Situation du 
 IC.chart = 'M4 20V10M10 20V4M16 20v-7M22 20H2';
 const EVL = { fiancailles: 'Fiançailles', mariage: 'Mariage', circoncision: 'Circoncision', communion: 'Communion', bapteme: 'Baptême', deces: 'Décès' };
 const REL = { pere: 'Père', mere: 'Mère', enfant: 'Enfant', conjoint: 'Conjoint(e)', frere: 'Frère', soeur: 'Sœur' };
-const TABOF = p => ({ home: 'home', profile: 'profile', budget: 'budget', admin: 'admin', requests: 'admin', members: 'admin', cotis: 'admin', global: 'admin', notify: 'admin', settings: 'admin', event: 'admin' })[p] || 'amicale';
-const PARENT = { requests: 'admin', members: 'admin', cotis: 'admin', global: 'admin', notify: 'admin', settings: 'admin', event: 'cotis' };
+const TABOF = p => p === 'global' ? (isAdm() && PREV !== 'amicale' ? 'admin' : 'amicale') : ({ home: 'home', profile: 'profile', budget: 'budget', admin: 'admin', requests: 'admin', members: 'admin', cotis: 'admin', notify: 'admin', settings: 'admin', event: 'admin' })[p] || 'amicale';
+const PARENT = { requests: 'admin', members: 'admin', cotis: 'admin', notify: 'admin', settings: 'admin', event: 'cotis' };
 const MAINP = ['home', 'profile', 'budget', 'amicale', 'admin'];
 let PREV = null;
 function go(p) { if (p !== page && !MAINP.includes(p)) PREV = MAINP.includes(page) || p !== PREV ? page : PREV; page = p; menu = false; window.scrollTo(0, 0); render(); }
@@ -671,6 +684,7 @@ async function amicaleV() {
   const doc = k => (d || []).find(x => x.kind === k && x.file_url);
   const dl = (k, t) => `<button class="row" style="width:100%;background:none;border-left:0;border-right:0;border-top:0;color:var(--tx);font:inherit;cursor:pointer" onclick="go('${k}')"><span style="display:flex;gap:12px;align-items:center">${ico('doc')}<b style="font-weight:600">${t}</b></span><span style="font-size:12px;color:#93c5fd;font-weight:700">${doc(k) ? 'PDF' : 'Ouvrir'}</span></button>`;
   return `<button class="tl" style="--c:#2563eb;--d:#172554;min-height:0;flex-direction:row;align-items:center" onclick="go('situation')"><span class="ti">${ico('users')}</span><span style="flex:1"><b>Situation des membres</b><br><small>Cotisations, téléphones et événements de chaque membre</small></span><span>→</span></button>
+  <button class="tl" style="--c:#7c3aed;--d:#2e1065;min-height:0;flex-direction:row;align-items:center" onclick="go('global')"><span class="ti">${ico('chart')}</span><span style="flex:1"><b>Bilan de l’année ${YEAR}</b><br><small>Cotisations et événements : la situation de l’amicale</small></span><span>→</span></button>
   <div class="q">${tile('annonce', 'mega', '#7c3aed', '#2e1065', 'Annonces', 'Les nouvelles de l’amicale')}${tile('rappel', 'bell', '#dc2626', '#7f1d1d', 'Rappels', 'Les rappels importants')}
   ${tile('honneur', 'star', '#c2410c', '#431407', 'Page d’honneur', 'Membres à l’honneur')}${tile('morts', 'heart', '#4b5563', '#111827', 'À nos morts', 'En mémoire')}</div>
   <button class="tl" style="--c:#0d9488;--d:#134e4a;min-height:0;flex-direction:row;align-items:center" onclick="go('image')"><span class="ti">${ico('image')}</span><span style="flex:1"><b>Images de l’amicale</b><br><small>Photos</small></span><span>→</span></button>
@@ -890,25 +904,58 @@ if ('serviceWorker' in navigator) navigator.serviceWorker.addEventListener('mess
 document.addEventListener('visibilitychange', () => { if (!document.hidden && me && me.status === 'active' && page === 'home') notifLoad(); });
 
 /* ---------- Notifications obligatoires : écran bloquant tant que ce téléphone ne les a pas activées ---------- */
+/* ---------- Installation de l'application + activation des notifications ----------
+   Une fenêtre en bas de l'écran, à chaque ouverture, tant que l'application n'est pas installée
+   ou que les notifications ne sont pas activées. « Continuer pour l'instant » la ferme jusqu'à la prochaine ouverture. */
+const INST = { evt: null, vu: false };
+const MOBILE = IOS || /android/i.test(navigator.userAgent);
+const INAPP = /FBAN|FBAV|FB_IAB|Instagram|Line\/|Snapchat|TikTok|musical_ly|; wv\)/i.test(navigator.userAgent);
+const IOS_SAFARI = IOS && /safari/i.test(navigator.userAgent) && !/crios|fxios|edgios|opios/i.test(navigator.userAgent);
+const estInstallee = () => STANDALONE || matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+const ssGet = k => { try { return sessionStorage.getItem(k); } catch (_) { return null; } };
+const ssSet = (k, v) => { try { sessionStorage.setItem(k, v); } catch (_) {} };
+window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); INST.evt = e; pushGate(); });
+window.addEventListener('appinstalled', () => { INST.evt = null; lsSet('amd_installee', '1'); pushGate(); });
+async function installer() {
+  if (!INST.evt) { ssSet('amd_inst_aide', '1'); return pushGate(); }
+  INST.evt.prompt();
+  try { const r = await INST.evt.userChoice; INST.evt = null; if (r && r.outcome === 'accepted') { lsSet('amd_installee', '1'); const m = $('#instmsg'); if (m) m.innerHTML = '<div class="ok">✅ Installation en cours : l’icône A.M.D va apparaître sur ton écran d’accueil. Ouvre A.M.D depuis cette icône.</div>'; return; } } catch (_) {}
+  pushGate();
+}
+function instPlusTard() { ssSet('amd_inst_ferme', '1'); pushGate(); }
+function copierLien() { const u = location.origin + location.pathname; (navigator.clipboard ? navigator.clipboard.writeText(u) : Promise.reject()).then(() => alert('Lien copié. Colle-le dans ' + (IOS ? 'Safari' : 'Chrome') + '.')).catch(() => prompt('Copie ce lien :', u)); }
 function pushGate() {
   const g = $('#pushgate'); if (!g) return;
-  g.innerHTML = ''; g.className = ''; return;   // l'écran bloquant est remplacé par la carte de l'accueil
-  const st = pushState();
-  const need = BR.notifOblig && me && me.status === 'active' && PUSH.ready && ['off', 'refus', 'ios'].includes(st);
-  if (!need) { g.innerHTML = ''; g.className = ''; return; }
-  const corps = {
-    off: `<div style="font-size:15px;line-height:1.6">Pour utiliser A.M.D, tu dois activer les notifications sur ce téléphone. C'est ainsi que l'amicale te prévient des <b>annonces</b>, <b>rappels</b> et <b>réunions</b>.</div>
-      <div class="s" style="margin-top:10px">Touche le bouton ci-dessous, puis <b>Autoriser</b> dans la fenêtre du téléphone.</div>`,
-    refus: `<div style="font-size:15px;line-height:1.6">Les notifications sont <b>bloquées</b> sur ce téléphone. Elles sont obligatoires pour utiliser A.M.D.</div>
-      <div class="s" style="margin-top:10px;line-height:1.6"><b>Android :</b> appui long sur l'icône A.M.D → Infos sur l'appli → Notifications → Autoriser.<br>Ou dans Chrome : cadenas à côté de l'adresse → Autorisations → Notifications → Autoriser.<br><b>iPhone :</b> Réglages → Notifications → A.M.D → Autoriser les notifications.<br>Puis touche « J'ai autorisé ».</div>`,
-    ios: `<div style="font-size:15px;line-height:1.6">Pour utiliser A.M.D sur iPhone, il faut l'installer sur l'écran d'accueil afin de recevoir les notifications de l'amicale.</div>
-      <div class="s" style="margin-top:10px;line-height:1.6">1. Touche <b>Partager</b> ⬆️ en bas de Safari.<br>2. Choisis <b>Sur l'écran d'accueil</b>, puis <b>Ajouter</b>.<br>3. Ouvre A.M.D depuis la nouvelle icône et active les notifications.</div>`
-  }[st];
-  const bout = st === 'off' ? btn('🔔 Activer les notifications', 'pushEnable()', 'green') : st === 'refus' ? btn("J'ai autorisé", 'location.reload()', 'green') : '';
-  g.className = 'gate';
-  g.innerHTML = `<div class="ctr"><div class="big">${logo()}</div><div style="font-weight:800;font-size:17px">${esc(BR.name)}</div>
-    <div class="c" style="background:linear-gradient(135deg,#a16207,#713f12)"><div style="font-weight:800;font-size:19px;margin-bottom:10px">🔔 Notifications obligatoires</div>${corps}</div>
-    ${bout}<div id="pushmsg"></div>${btn('Se déconnecter', 'logout()', 'gray')}<div class="s">En cas de difficulté, contacte un administrateur de l'amicale.</div><div class="ft">${FOOT}</div></div>`;
+  const st = pushState(), inst = estInstallee(), notifOk = st === 'on' || PUSH.srv > 0;
+  const besoinInst = MOBILE && !inst, besoinNotif = BR.notifOblig && !notifOk && st !== 'non';
+  const montrer = me && me.status === 'active' && PUSH.ready && page !== 'guide' && !ssGet('amd_inst_ferme') && (besoinInst || besoinNotif);
+  if (!montrer) { g.innerHTML = ''; g.className = ''; document.documentElement.classList.remove('inst-lock'); return; }
+  const share = '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px"><path d="M12 3v12M8 7l4-4 4 4"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg>';
+  const k = '<b class="ik">⋮</b>';
+  // Étape 1 : installer
+  let e1;
+  if (inst) e1 = `<span class="ist ok">✓</span><div><b>Application installée</b><div class="s">Tu ouvres A.M.D depuis son icône.</div></div>`;
+  else if (!MOBILE) e1 = `<span class="ist ok">✓</span><div><b>Ordinateur</b><div class="s">L’installation se fait sur le téléphone.</div></div>`;
+  else if (INAPP) e1 = `<span class="ist">1</span><div><b>Ouvre A.M.D dans ${IOS ? 'Safari' : 'Chrome'}</b><div class="s">Tu es dans une autre application. Touche ${k} ou ${share} puis « Ouvrir dans ${IOS ? 'Safari' : 'Chrome'} ».</div><div style="margin-top:8px">${btnS('Copier le lien', 'copierLien()', 'gray')}</div></div>`;
+  else if (IOS) e1 = `<span class="ist">1</span><div><b>Installe A.M.D sur l’écran d’accueil</b><ol class="isteps">${IOS_SAFARI ? '' : '<li>Ouvre ce lien dans <b>Safari</b> ;</li>'}<li>Touche <b>Partager</b> ${share} en bas de l’écran ;</li><li>Choisis <b>« Sur l’écran d’accueil »</b> puis <b>Ajouter</b> ;</li><li>Ouvre A.M.D depuis la nouvelle icône.</li></ol></div>`;
+  else if (INST.evt) e1 = `<span class="ist">1</span><div><b>Installe l’application</b><div class="s">Un seul geste : l’icône A.M.D s’ajoute à ton écran d’accueil.</div><div style="margin-top:10px">${btn('📲 Installer A.M.D', 'installer()', 'green')}</div></div>`;
+  else e1 = `<span class="ist">1</span><div><b>Installe l’application</b><ol class="isteps"><li>Touche le menu ${k} en haut à droite de Chrome ;</li><li>Choisis <b>« Installer l’application »</b> ou <b>« Ajouter à l’écran d’accueil »</b> ;</li><li>Confirme avec <b>Installer</b>.</li></ol></div>`;
+  // Étape 2 : notifications
+  let e2;
+  if (notifOk) e2 = `<span class="ist ok">✓</span><div><b>Notifications activées</b><div class="s">Ton téléphone sonnera pour les annonces et rappels.</div></div>`;
+  else if (st === 'ios') e2 = `<span class="ist">2</span><div><b>Active les notifications</b><div class="s">Sur iPhone, c’est possible une fois A.M.D ouvert depuis son icône : cette fenêtre te proposera alors le bouton.</div></div>`;
+  else if (st === 'refus') e2 = `<span class="ist">2</span><div><b>Notifications bloquées</b><div class="s">Paramètres du téléphone → Notifications → A.M.D (ou Chrome) → Autoriser, puis rouvre A.M.D.</div></div>`;
+  else if (st === 'non') e2 = `<span class="ist">2</span><div><b>Notifications</b><div class="s">Ce navigateur ne les gère pas : ouvre A.M.D avec Chrome${IOS ? ' ou Safari' : ''}.</div></div>`;
+  else e2 = `<span class="ist">2</span><div><b>Active les notifications</b><div class="s">Pour être prévenu des annonces, rappels et cotisations, même application fermée.</div><div style="margin-top:10px">${btn('🔔 Activer les notifications', 'pushEnable()', 'blue')}</div></div>`;
+  const titre = besoinInst && besoinNotif ? 'Installe A.M.D et active les notifications' : besoinInst ? 'Installe l’application A.M.D' : 'Active les notifications';
+  const premier = !INST.vu; INST.vu = true;
+  g.className = 'isheet';
+  g.innerHTML = `<div class="ibox${premier ? ' ianim' : ''}" role="dialog" aria-modal="true" aria-label="${titre}"><div class="ilogo">${logo()}</div>
+    <div style="font-weight:800;font-size:19px;text-align:center">${titre}</div>
+    <div class="s" style="text-align:center;margin-top:4px">${esc(BR.name)} s’ouvrira en plein écran, depuis son icône, comme une vraie application.</div>
+    <div class="istep">${e1}</div><div class="istep">${e2}</div><div id="instmsg"></div><div id="pushmsg"></div>
+    <button class="ilater" onclick="instPlusTard()">Continuer dans le navigateur pour l’instant</button></div>`;
+  document.documentElement.classList.add('inst-lock');
 }
 
 if ('serviceWorker' in navigator) navigator.serviceWorker.addEventListener('message', e => { if (e.data && e.data.amdGoto && me && TITRES[e.data.amdGoto]) go(e.data.amdGoto); });
