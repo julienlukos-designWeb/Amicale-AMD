@@ -187,7 +187,8 @@ function authView() {
   <label class="s" style="display:block;margin-top:10px">Mot de passe${up ? ' (6 caractères minimum)' : ''}<input class="f" name="pw" type="password" required minlength="6" autocomplete="${up ? 'new-password' : 'current-password'}"></label>
   <button class="b" style="width:100%;margin-top:18px;--c:${up ? '#15803d' : '#2563eb'};--d:${up ? '#14532d' : '#1e3a8a'}">${up ? 'Créer mon compte' : 'Se connecter'}</button></form>
   ${up ? '<div class="s">Un administrateur validera ton compte avant ta première connexion.</div>' : ''}
-  <div class="ft">${FOOT}</div></div>`;
+  ${instLien()}
+  <div class="ft">${FOOT}</div></div><div id="pushgate"></div>`;
 }
 function setTab(t) { tab = t; msg = ''; render(); }
 async function signin(e) {
@@ -209,7 +210,7 @@ async function logout() { if (PUSH.sub) await SB.rpc('amd_push_retirer', { p_end
 function stateView(icon, titre, texte) {
   return `<div class="ctr"><div class="big">${logo()}</div><div style="font-weight:800;font-size:17px">${esc(BR.name)}</div>
   <div class="c" style="background:linear-gradient(135deg,#b45309,#78350f);padding:24px 20px"><div style="font-weight:800;font-size:19px">${titre}</div><div style="font-size:14px;color:#fde68a;margin-top:8px;line-height:1.5">${texte}</div></div>
-  ${btn('Actualiser', 'boot()', 'blue')}${btn('Se déconnecter', 'logout()', 'gray')}<div class="ft">${FOOT}</div></div>`;
+  ${btn('Actualiser', 'boot()', 'blue')}${btn('Se déconnecter', 'logout()', 'gray')}${instLien()}<div class="ft">${FOOT}</div></div><div id="pushgate"></div>`;
 }
 
 const TITRES = { notify: 'Notifications', settings: 'Paramètres', home: 'Accueil', profile: 'Mon compte', budget: 'Caisse de l’amicale', situation: 'Situation des membres', requests: 'Inscriptions', members: 'Membres', amicale: 'La vie de l’amicale', admin: 'Espace Admin', cotis: 'Cotisations', guide: 'Bienvenue' };
@@ -232,12 +233,12 @@ function item(p, t, ic) { return `<button class="i ${page === p ? 'a' : ''}" onc
 
 function render() {
   const a = $('#app');
-  if (!me) { a.innerHTML = authView(); return; }
+  if (!me) { a.innerHTML = authView(); pushGate(); return; }
   const m = { pending: ['Compte en attente de validation', `Bonjour ${esc(me.first_name)}, ta demande a bien été envoyée. Un administrateur va la valider. Tu pourras alors accéder à la plateforme.`],
     rejected: ['Demande rejetée', 'Ta demande d\'inscription a été rejetée. Contacte un administrateur de l\'amicale.'],
     disabled: ['Compte désactivé', 'Ton compte est désactivé. Contacte un administrateur pour le réactiver.'],
     deleted: ['Compte supprimé', 'Ce compte n\'est plus actif. Contacte un administrateur de l\'amicale.'] }[me.status];
-  if (m) { a.innerHTML = stateView('', m[0], m[1]); return; }
+  if (m) { a.innerHTML = stateView('', m[0], m[1]); pushGate(); return; }
   if (!isAdm() && TABOF(page) === 'admin') page = 'home';
   if (!lsGet('amd_guide_vu')) page = 'guide';
   const T = [['home', 'home', 'Accueil'], ['profile', 'user', 'Mon compte'], ['budget', 'wallet', 'Caisse'], ['amicale', 'mega', 'Amicale']].concat(isAdm() ? [['admin', 'shield', 'Admin']] : []), cur = TABOF(page);
@@ -256,7 +257,7 @@ async function fill() {
   else if (page === 'amicale') h = await amicaleV();
   else if (page === 'admin') h = isAdm() ? await adminV() : '';
   else if (page === 'cotis') h = isAdm() ? (COSEG === 'sp' ? await specialsV() : await situationV()) : '';
-  else if (page === 'profile') h = (await profileV()) + await mesSpecialesV() + '<div id="pushbox" class="c"></div>' + `<button class="c" onclick="lsSet('amd_guide_vu','');go('guide')" style="display:flex;justify-content:space-between;align-items:center;color:var(--tx);font:inherit;font-weight:700;cursor:pointer;width:100%"><span>Comment ça marche ?</span><span style="color:#facc15">→</span></button>` + btn('Se déconnecter', 'logout()', 'gray') + `<div class="ft">${FOOT}</div>`;
+  else if (page === 'profile') h = (await profileV()) + await mesSpecialesV() + '<div id="pushbox" class="c"></div>' + instCarte() + `<button class="c" onclick="lsSet('amd_guide_vu','');go('guide')" style="display:flex;justify-content:space-between;align-items:center;color:var(--tx);font:inherit;font-weight:700;cursor:pointer;width:100%"><span>Comment ça marche ?</span><span style="color:#facc15">→</span></button>` + btn('Se déconnecter', 'logout()', 'gray') + `<div class="ft">${FOOT}</div>`;
   else if (page === 'notify') h = isAdm() ? await notifyV() : '';
   else if (page === 'settings') h = await settingsV();
   else if (page === 'budget') h = await budgetV();
@@ -923,12 +924,30 @@ async function installer() {
   pushGate();
 }
 function instPlusTard() { ssSet('amd_inst_ferme', '1'); pushGate(); }
+// Rouvre l'aide à l'installation (même après « Continuer dans le navigateur »)
+function instOuvrir() {
+  ssSet('amd_inst_ferme', '');
+  if (INST.evt) return installer();          // Android / Chrome : installation directe en un geste
+  if (!MOBILE) return alert('Ouvre ce lien sur ton téléphone pour installer A.M.D.');
+  pushGate();
+}
+const instAfaire = () => !estInstallee() && (MOBILE || !!INST.evt);
+function instLien() {
+  return instAfaire() ? `<button class="ilater" style="color:#60a5fa;font-weight:700;text-decoration:none" onclick="instOuvrir()">📲 Installer l’application sur mon téléphone</button>` : '';
+}
+function instCarte() {
+  if (estInstallee()) return `<div class="c"><div class="pst"><i>📲</i><div><b>Application installée</b><div class="s" style="margin-top:4px">Tu ouvres A.M.D depuis son icône.</div></div></div></div>`;
+  if (!instAfaire()) return '';
+  return `<div class="c"><div class="pst"><i>📲</i><div><b>Installer l’application</b><div class="s" style="margin-top:4px">Ajoute l’icône A.M.D sur ton écran d’accueil : elle s’ouvrira en plein écran, comme une vraie application.</div></div></div>${btn('📲 Installer A.M.D', 'instOuvrir()', 'green')}</div>`;
+}
 function copierLien() { const u = location.origin + location.pathname; (navigator.clipboard ? navigator.clipboard.writeText(u) : Promise.reject()).then(() => alert('Lien copié. Colle-le dans ' + (IOS ? 'Safari' : 'Chrome') + '.')).catch(() => prompt('Copie ce lien :', u)); }
 function pushGate() {
   const g = $('#pushgate'); if (!g) return;
+  const connecte = !!(me && me.status === 'active');
   const st = pushState(), inst = estInstallee(), notifOk = st === 'on' || PUSH.srv > 0;
-  const besoinInst = MOBILE && !inst, besoinNotif = BR.notifOblig && !notifOk && st !== 'non';
-  const montrer = me && me.status === 'active' && PUSH.ready && page !== 'guide' && !ssGet('amd_inst_ferme') && (besoinInst || besoinNotif);
+  const besoinInst = MOBILE && !inst, besoinNotif = connecte && BR.notifOblig && !notifOk && st !== 'non';
+  // Connecté : après la vérification des notifications (hors page Bienvenue). Pas connecté ou compte en attente : dès l'ouverture, pour l'installation seule.
+  const montrer = (connecte ? PUSH.ready && page !== 'guide' : true) && !ssGet('amd_inst_ferme') && (besoinInst || besoinNotif);
   if (!montrer) { g.innerHTML = ''; g.className = ''; document.documentElement.classList.remove('inst-lock'); return; }
   const share = '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px"><path d="M12 3v12M8 7l4-4 4 4"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg>';
   const k = '<b class="ik">⋮</b>';
@@ -953,7 +972,7 @@ function pushGate() {
   g.innerHTML = `<div class="ibox${premier ? ' ianim' : ''}" role="dialog" aria-modal="true" aria-label="${titre}"><div class="ilogo">${logo()}</div>
     <div style="font-weight:800;font-size:19px;text-align:center">${titre}</div>
     <div class="s" style="text-align:center;margin-top:4px">${esc(BR.name)} s’ouvrira en plein écran, depuis son icône, comme une vraie application.</div>
-    <div class="istep">${e1}</div><div class="istep">${e2}</div><div id="instmsg"></div><div id="pushmsg"></div>
+    <div class="istep">${e1}</div>${connecte ? `<div class="istep">${e2}</div>` : ''}<div id="instmsg"></div>${connecte ? '<div id="pushmsg"></div>' : ''}
     <button class="ilater" onclick="instPlusTard()">Continuer dans le navigateur pour l’instant</button></div>`;
   document.documentElement.classList.add('inst-lock');
 }
